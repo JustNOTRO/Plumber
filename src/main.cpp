@@ -28,14 +28,14 @@ int main() {
       res.set_content("Hello Notro!", "text/plain");
     });
 
-    server.Post("/retry", [](const httplib::Request &, httplib::Response &res) {
-       res.set_content(res.body.data(), "text/plain");
+    server.Post("/retry", [](const httplib::Request &req, httplib::Response &) {
+        std::println("{}", req.body);
     });
 
     YAML::Node config;
 
     try {
-        std::string path = std::filesystem::current_path().parent_path().string() + "/src/config.yaml";
+        const std::string path = std::filesystem::current_path().parent_path().string() + "/src/config.yaml";
         config = YAML::LoadFile(path);
     } catch (std::exception &e) {
         std::println("Exception caught: {}", e.what());
