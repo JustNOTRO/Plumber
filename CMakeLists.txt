@@ -14,4 +14,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
-target_link_libraries(Plumber PUBLIC yaml-cpp::yaml-cpp)
+target_link_libraries(Plumber PRIVATE yaml-cpp::yaml-cpp)
+
+
+FetchContent_Declare(
+        nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG develop
+)
+
+FetchContent_MakeAvailable(nlohmann_json)
+
+target_link_libraries(Plumber PRIVATE nlohmann_json::nlohmann_json)
