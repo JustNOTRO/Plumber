@@ -3,7 +3,10 @@ project(Plumber)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(Plumber src/main.cpp src/httplib.h src/config.yaml)
+add_executable(Plumber src/main.cpp src/httplib.h src/config.yaml
+        src/Server.h
+        src/Server.cpp
+)
 
 include(FetchContent)
 
