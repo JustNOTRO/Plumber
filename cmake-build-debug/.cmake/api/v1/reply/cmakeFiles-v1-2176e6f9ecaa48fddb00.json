@@ -1,0 +1,704 @@
+{
+	"globsDependent" : 
+	[
+		{
+			"expression" : "/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/*.cpp",
+			"listDirectories" : true,
+			"paths" : 
+			[
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/binary.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/convert.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/depthguard.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/directives.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/emit.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/emitfromevents.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/emitter.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/emitterstate.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/emitterutils.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/exceptions.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/exp.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/fptostring.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/memory.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/node.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/node_data.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/nodebuilder.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/nodeevents.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/null.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/ostream_wrapper.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/parse.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/parser.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/regex_yaml.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/scanner.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/scanscalar.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/scantag.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/scantoken.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/simplekey.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/singledocparser.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/stream.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/tag.cpp"
+			]
+		},
+		{
+			"expression" : "/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/contrib/*.cpp",
+			"listDirectories" : true,
+			"paths" : 
+			[
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/contrib/graphbuilder.cpp",
+				"/Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/yaml-cpp-src/src/contrib/graphbuilderadapter.cpp"
+			]
+		}
+	],
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/4.0.2/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Darwin-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/4.0.2/CMakeCCompiler.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/4.0.2/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Darwin.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/AppleClang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Apple-AppleClang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Apple-Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Apple-Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CMakeCLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Linker/AppleClang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Linker/AppleClang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Linker/Apple-AppleClang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Linker/Apple-AppleClang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Apple-AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Apple-Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Apple-Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CMakeCXXLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Linker/AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Linker/AppleClang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Linker/Apple-AppleClang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Platform/Linker/Apple-AppleClang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FetchContent.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/shared_internal_commands.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/gitclone.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/RepositoryInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/gitupdate.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/UpdateInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/PatchInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/gitclone.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/RepositoryInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/gitupdate.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/UpdateInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/PatchInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/gitclone.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/RepositoryInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/gitupdate.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/UpdateInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/PatchInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/stepscript.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/fc-tmp/spdlog/download.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/fc-tmp/spdlog/spdlog-gitclone.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/fc-tmp/spdlog/update.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/fc-tmp/spdlog/spdlog-gitupdate.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/fc-tmp/spdlog/patch.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/yaml-cpp-src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeDependentOption.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CheckCXXCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CheckCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CheckFlagCommonConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CheckCXXSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CTest.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CTestUseLaunchers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CTestTargets.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/DartConfiguration.tcl.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/yaml-cpp-src/yaml-cpp-config.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/yaml-cpp-src/yaml-cpp.pc.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/yaml-cpp-src/util/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/nlohmann_json-src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/ExternalProject/shared_internal_commands.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/nlohmann_json-src/cmake/pkg-config.pc.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/nlohmann_json-src/cmake/nlohmann_jsonConfigVersion.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/nlohmann_json-src/cmake/config.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/spdlog-src/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/spdlog-src/cmake/utils.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/_deps/spdlog-src/cmake/ide.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-4.0/Modules/CheckSymbolExists.cmake"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/Users/eilon/CLionProjects/Plumber/cmake-build-debug",
+		"source" : "/Users/eilon/CLionProjects/Plumber"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 1
+	}
+}

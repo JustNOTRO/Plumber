@@ -1,0 +1,11 @@
+/Users/eilon/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Users/eilon/Applications/CLion.app/Contents/bin/ninja/mac/aarch64/ninja -G Ninja -S /Users/eilon/CLionProjects/Plumber -B /Users/eilon/CLionProjects/Plumber/cmake-build-debug
+-- Using the multi-header code from /Users/eilon/CLionProjects/Plumber/cmake-build-debug/_deps/nlohmann_json-src/include/
+Previous HEAD position was 27cb4c76 Added mdc example to readme
+HEAD is now at 3f03542d Remove warning 4834 suppression
+-- Build spdlog: 1.16.0
+-- Build type: Debug
+-- Looking for fwrite_unlocked
+-- Looking for fwrite_unlocked - not found
+-- Configuring done (0.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/eilon/CLionProjects/Plumber/cmake-build-debug

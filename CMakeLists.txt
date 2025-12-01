@@ -3,9 +3,11 @@ project(Plumber)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(Plumber src/main.cpp src/httplib.h src/config.yaml
-        src/Server.h
-        src/Server.cpp
+add_executable(Plumber src/main.cpp src/httplib.h src/data/config.yaml
+        src/server/Server.cpp
+        src/server/Server.hpp
+        src/data/Config.cpp
+        src/data/Config.hpp
 )
 
 include(FetchContent)
@@ -29,3 +31,14 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann_json)
 
 target_link_libraries(Plumber PRIVATE nlohmann_json::nlohmann_json)
+
+
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.x
+)
+
+FetchContent_MakeAvailable(spdlog)
+
+target_link_libraries(Plumber PRIVATE spdlog::spdlog)
