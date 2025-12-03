@@ -4,26 +4,15 @@
 
 #include "server/Server.hpp"
 
-#include <spdlog/spdlog.h>
+#define DEFAULT_IP "0.0.0.0"
+#define DEFAULT_PORT 8080
 
 int main() {
-    const Config config;
-    const auto ip_addr_opt = config.get_value<std::string>("ip");
+    Config config;
 
-    if (!ip_addr_opt.has_value()) {
-        spdlog::error("Could not find IP address");
-        return 1;
-    }
+    auto ip_addr = config.get_value<std::string>("ip").value_or(DEFAULT_IP);
+    unsigned short port = config.get_value<std::uint16_t>("port").value_or(DEFAULT_PORT);
 
-    const auto port_opt = config.get_value<std::uint16_t>("port");
-    if (!port_opt.has_value()) {
-        spdlog::error("Could not find port");
-        return 1;
-    }
-
-    const auto ip = ip_addr_opt.value();
-    const auto port = port_opt.value();
-
-    Server server(ip, port, config);
+    Server server(ip_addr, port, config);
     server.start();
 }
