@@ -3,7 +3,7 @@
 
 #include <utility>
 
-Server::Server(std::string ip, const std::uint16_t &port, Config &config, httplib::Client &gitlab_client)
+Server::Server(std::string ip, const std::uint16_t port, Config &config, httplib::Client &gitlab_client)
 : ip(std::move(ip)), port(port), config(config), gitlab_client(gitlab_client) {
 
     Post("/retry", [&config](const httplib::Request &req, httplib::Response &) {
