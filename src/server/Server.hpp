@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 class Server final : public httplib::Server {
 public:
-    Server(std::string ip, const std::uint16_t &port, Config &config);
+    Server(std::string ip, const std::uint16_t &port, Config &config, httplib::Client &gitlab_client);
 
     ~Server() override;
 
@@ -27,4 +27,6 @@ private:
     std::uint16_t port;
 
     Config &config;
+
+    httplib::Client &gitlab_client;
 };

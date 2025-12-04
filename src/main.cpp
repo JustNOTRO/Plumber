@@ -6,6 +6,7 @@
 
 #define DEFAULT_IP "0.0.0.0"
 #define DEFAULT_PORT 8080
+#define HTTPS_PORT 443
 
 int main() {
     Config config;
@@ -13,6 +14,9 @@ int main() {
     auto ip_addr = config.get_value<std::string>("ip").value_or(DEFAULT_IP);
     unsigned short port = config.get_value<std::uint16_t>("port").value_or(DEFAULT_PORT);
 
-    Server server(ip_addr, port, config);
+    const auto gitlab_instance = config.get_value<std::string>("gitlab_instance").value_or("gitlab.com");
+    httplib::Client gitlab_client(gitlab_instance, HTTPS_PORT);
+
+    Server server(ip_addr, port, config, gitlab_client);
     server.start();
 }
