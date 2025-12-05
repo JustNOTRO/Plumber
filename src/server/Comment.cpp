@@ -8,9 +8,7 @@
 
 Comment::Comment(const nlohmann::basic_json<> &obj_attributes) : obj_attributes(obj_attributes) {}
 
-Comment::~Comment() {
-
-}
+Comment::~Comment() {}
 
 Comment::CommentType Comment::get_type() const {
     const std::string noteable_type = obj_attributes.at("noteable_type");
