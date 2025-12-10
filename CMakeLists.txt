@@ -12,8 +12,10 @@ add_executable(Plumber src/main.cpp src/httplib.h config.yaml
         src/server/Server.hpp
         src/data/Config.cpp
         src/data/Config.hpp
-        src/server/Comment.cpp
-        src/server/Comment.hpp
+        src/managers/JobManager.cpp
+        src/managers/JobManager.hpp
+        src/Job.cpp
+        src/Job.hpp
 )
 
 include(FetchContent)

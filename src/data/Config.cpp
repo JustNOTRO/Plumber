@@ -9,7 +9,7 @@
 
 Config::Config() {
     try {
-        const std::string path = std::filesystem::current_path().parent_path().string() + "/src/data/config.yaml";
+        const std::string path = std::filesystem::current_path().parent_path().string() + "/config.yaml";
         this->node = YAML::LoadFile(path);
     } catch (std::exception &e) {
         spdlog::error("Exception caught: {}", e.what());

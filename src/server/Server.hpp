@@ -4,13 +4,15 @@
 
 #pragma once
 
-#define USER_MENTION_PREFIX "@"
+#define BOT_MENTION_PERFIX "@"
 
 #include "../data/Config.hpp"
 #include "../httplib.h"
 #include "spdlog/spdlog.h"
 
 #include <nlohmann/json.hpp>
+
+#include "../managers/JobManager.hpp"
 
 using json = nlohmann::json;
 
@@ -23,7 +25,13 @@ public:
     void start();
 
 private:
-    bool retry_last_pipeline(json &req_body, const nlohmann::basic_json<> &obj_attributes);
+    bool retry_job(const Job &job) const;
+
+    std::optional<Job> get_job_by_name(const json &jobs, const std::string &job_name, const json &req_body);
+
+    void handle_comment_webhook(const json &req_body, const std::string &bot_username);
+
+    void handle_job_webhook(const json &req_body);
 
     std::string ip;
 
@@ -32,4 +40,6 @@ private:
     Config &config;
 
     httplib::SSLClient &gitlab_client;
+
+    JobManager job_manager;
 };
