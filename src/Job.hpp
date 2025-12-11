@@ -16,11 +16,11 @@ public:
         SUCCESS
     };
 
-    Job(const nlohmann::json &job_body, const nlohmann::json &req_body, const int &project_id);
+    Job(const int &id, const int &project_id);
 
     ~Job() = default;
 
-    void increase_retry_amount(const int &increase_by);
+    void increase_retry_amount();
 
     [[nodiscard]] int get_project_id() const;
 
@@ -28,29 +28,24 @@ public:
 
     [[nodiscard]] int get_id() const;
 
+    void set_id(const int& new_id);
+
     [[nodiscard]] int get_retry_amount() const;
 
-    Status get_status() const;
+    [[nodiscard]] Status get_status() const;
 
     void set_status(const Status &new_job);
 
-    std::string get_name() const;
+    [[nodiscard]] std::string get_name() const;
 
     void set_name(const std::string &new_name);
 
-    void set_id(const int& new_id);
-
-
 private:
-    const nlohmann::json &req_body;
-
-    const nlohmann::json &job_body;
-
     int cur_retry_amount = 1;
 
     Status status;
 
-    int id = job_body.at("id");
+    int id;
 
     int project_id;
 

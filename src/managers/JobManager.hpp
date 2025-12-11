@@ -17,7 +17,7 @@ public:
 
     Job &get_job(const int &pipeline_id);
 
-    Job get_or_create(const int &pipeline_id, const nlohmann::json &job_body, const nlohmann::json &req_body) const;
+    [[nodiscard]] Job get_or_create(const int &pipeline_id, const nlohmann::json &job_body) const;
 
 private:
     std::unordered_map<int, Job> jobs = {};

@@ -4,13 +4,13 @@
 
 #include "Job.hpp"
 
-Job::Job(const nlohmann::json &job_body, const nlohmann::json &req_body, const int &project_id)
-: req_body(req_body), job_body(job_body), project_id(project_id) {
-
+Job::Job(const int &id, const int &project_id) : project_id(project_id) {
+    this->id = id;
+    this->status = Status::CREATED;
 }
 
-void Job::increase_retry_amount(const int &increase_by) {
-    cur_retry_amount += increase_by;
+void Job::increase_retry_amount() {
+    cur_retry_amount++;
 }
 
 int Job::get_project_id() const {

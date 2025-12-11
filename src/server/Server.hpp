@@ -27,11 +27,13 @@ public:
 private:
     bool retry_job(const Job &job) const;
 
-    std::optional<Job> get_job_by_name(const json &jobs, const std::string &job_name, const json &req_body);
+    std::optional<Job> get_job_by_name(const std::string &job_name, const json &req_body);
 
-    void handle_comment_webhook(const json &req_body, const std::string &bot_username);
+    void handle_comment_webhook(const json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    void handle_job_webhook(const json &req_body);
+    void handle_job_webhook(const json &req_body, const std::string &bot_username);
+
+    std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
 
     std::string ip;
 
