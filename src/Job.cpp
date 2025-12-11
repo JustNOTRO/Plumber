@@ -4,13 +4,14 @@
 
 #include "Job.hpp"
 
-Job::Job(const int &id, const int &project_id) : project_id(project_id) {
-    this->id = id;
-    this->status = Status::CREATED;
+#include "spdlog/spdlog.h"
+
+Job::Job(const int &id, const int &project_id) : status(Status::CREATED), id(id), project_id(project_id), retry_amount(1) {
+
 }
 
 void Job::increase_retry_amount() {
-    cur_retry_amount++;
+    retry_amount++;
 }
 
 int Job::get_project_id() const {
@@ -30,7 +31,7 @@ void Job::set_id(const int &new_id) {
 }
 
 int Job::get_retry_amount() const {
-    return cur_retry_amount;
+    return retry_amount;
 }
 
 Job::Status Job::get_status() const {

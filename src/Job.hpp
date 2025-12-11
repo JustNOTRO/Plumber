@@ -4,6 +4,7 @@
 
 #pragma once
 #include <nlohmann/json.hpp>
+#include <atomic>
 
 class Job {
 
@@ -41,8 +42,6 @@ public:
     void set_name(const std::string &new_name);
 
 private:
-    int cur_retry_amount = 1;
-
     Status status;
 
     int id;
@@ -50,4 +49,6 @@ private:
     int project_id;
 
     std::string name;
+
+    int retry_amount;
 };

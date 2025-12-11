@@ -1,5 +1,4 @@
 #include "Server.hpp"
-
 #include "../Job.hpp"
 
 #define HTTP_CREATED 201
@@ -60,6 +59,7 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const js
     const int &pipeline_id = req_body.at("merge_request").at("head_pipeline_id");
 
     const std::optional<nlohmann::json> jobs_opt = get_pipeline_jobs(project_id, pipeline_id);
+
     if (!jobs_opt.has_value())
         return std::nullopt;
 
@@ -67,14 +67,13 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const js
         if (other_job.at("name") != job_name)
             continue;
 
-        Job job = job_manager.get_or_create(pipeline_id, other_job);
+        Job job = job_manager.create_job(pipeline_id, other_job);
 
         if (const auto &status = other_job.at("status").get<std::string>(); status == "success")
             job.set_status(Job::Status::SUCCESS);
         else if (status == "failed")
             job.set_status(Job::Status::FAILED);
 
-        job_manager.add_job(pipeline_id, job);
         return std::make_optional(job);
     }
 
@@ -83,7 +82,6 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const js
 
 void Server::handle_comment_webhook(const json &req_body, const std::string &bot_username, const std::string &job_name) {
     const auto &note = req_body.at("object_attributes").at("note").get<std::string>();
-
     if (!note.contains(BOT_MENTION_PERFIX + bot_username))
         return;
 
@@ -106,8 +104,8 @@ void Server::handle_comment_webhook(const json &req_body, const std::string &bot
     job.increase_retry_amount();
 }
 
-void Server::handle_job_webhook(const json &req_body, const std::string &bot_username) {
-    if (req_body.at("build_name").get<std::string>() != bot_username)
+void Server::handle_job_webhook(const json &req_body, const std::string &job_name) {
+    if (req_body.at("build_name").get<std::string>() != job_name)
         return;
 
     const int &job_id = req_body.at("build_id").get<int>();
@@ -117,9 +115,7 @@ void Server::handle_job_webhook(const json &req_body, const std::string &bot_use
     job.set_id(job_id);
     job.set_project_id(req_body.at("project_id").get<int>());
 
-    const auto &status = req_body.at("build_status").get<std::string>();
-
-    if (status == "created")
+    if (const auto &status = req_body.at("build_status").get<std::string>(); status == "created")
         job.set_status(Job::Status::CREATED);
     else if (status == "pending")
         job.set_status(Job::Status::PENDING);
@@ -132,7 +128,7 @@ void Server::handle_job_webhook(const json &req_body, const std::string &bot_use
 
     if (job.get_status() == Job::Status::FAILED) {
         job_manager.remove_job(pipeline_id);
-        spdlog::error("job {} failed! terminating..", bot_username);
+        spdlog::error("job {} failed! terminating..", job_name);
         return;
     }
 
@@ -146,13 +142,16 @@ void Server::handle_job_webhook(const json &req_body, const std::string &bot_use
         return;
     }
 
+    spdlog::info(job.get_retry_amount());
+    spdlog::info(requested_retry_amount);
+
     if (job.get_retry_amount() >= requested_retry_amount) {
         spdlog::info("job retry_amount reached! terminating with success!");
         job_manager.remove_job(pipeline_id);
         return;
     }
 
-    job.set_name(bot_username);
+    job.set_name(job_name);
     job.increase_retry_amount();
 
     if (retry_job(job))

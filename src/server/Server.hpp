@@ -31,7 +31,7 @@ private:
 
     void handle_comment_webhook(const json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    void handle_job_webhook(const json &req_body, const std::string &bot_username);
+    void handle_job_webhook(const json &req_body, const std::string &job_name);
 
     std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
 
