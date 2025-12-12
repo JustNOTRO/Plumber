@@ -7,20 +7,17 @@
 #define BOT_MENTION_PERFIX "@"
 
 #include "../data/Config.hpp"
-#include "../httplib.h"
+#include "httplib.h"
 #include "spdlog/spdlog.h"
+#include "../managers/JobManager.hpp"
 
 #include <nlohmann/json.hpp>
-
-#include "../managers/JobManager.hpp"
 
 using json = nlohmann::json;
 
 class Server final : public httplib::Server {
 public:
-    Server(std::string ip, std::uint16_t port, Config &config, httplib::SSLClient &gitlab_client);
-
-    ~Server() override;
+    Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client);
 
     void start();
 
@@ -35,11 +32,11 @@ private:
 
     std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
 
-    std::string ip;
+    const std::string &ip;
 
-    std::uint16_t port;
+    const std::uint16_t &port;
 
-    Config &config;
+    const Config &config;
 
     httplib::SSLClient &gitlab_client;
 

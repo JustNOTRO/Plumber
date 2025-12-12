@@ -5,7 +5,10 @@
 #include "JobManager.hpp"
 #include "../Job.hpp"
 #include "../server/Server.hpp"
-#include "spdlog/spdlog.h"
+
+JobManager::~JobManager() {
+    delete &jobs;
+}
 
 Job JobManager::create_job(const int &pipeline_id, const nlohmann::json &job_body) {
     const int &id = job_body.at("id").get<int>();

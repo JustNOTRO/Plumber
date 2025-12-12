@@ -3,7 +3,7 @@
 
 #define HTTP_CREATED 201
 
-Server::Server(std::string ip, const std::uint16_t port, Config &config, httplib::SSLClient &gitlab_client)
+Server::Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client)
     : ip(std::move(ip)), port(port), config(config), gitlab_client(gitlab_client), job_manager(JobManager()) {
     Post("/retry", [&config, this](const httplib::Request &req, httplib::Response &) {
         const auto bot_username_opt = config.get_value<std::string>("bot_username");
@@ -31,14 +31,6 @@ Server::Server(std::string ip, const std::uint16_t port, Config &config, httplib
         else
             handle_comment_webhook(req_body, bot_username_opt.value(), job_name.value());
     });
-}
-
-Server::~Server() {
-    stop();
-    delete &ip;
-    delete &port;
-    delete &config;
-    delete &gitlab_client;
 }
 
 void Server::start() {
@@ -81,7 +73,13 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const js
 }
 
 void Server::handle_comment_webhook(const json &req_body, const std::string &bot_username, const std::string &job_name) {
-    const auto &note = req_body.at("object_attributes").at("note").get<std::string>();
+    const auto &object_attributes = req_body.at("object_attributes");
+    const auto &noteable_type = req_body.at("object_attributes").at("noteable_type").get<std::string>();
+
+    if (noteable_type != "MergeRequest")
+        return;
+
+    const auto &note = object_attributes.at("note").get<std::string>();
     if (!note.contains(BOT_MENTION_PERFIX + bot_username))
         return;
 
@@ -113,7 +111,6 @@ void Server::handle_job_webhook(const json &req_body, const std::string &job_nam
 
     Job &job = job_manager.get_job(pipeline_id);
     job.set_id(job_id);
-    job.set_project_id(req_body.at("project_id").get<int>());
 
     if (const auto &status = req_body.at("build_status").get<std::string>(); status == "created")
         job.set_status(Job::Status::CREATED);
@@ -142,9 +139,6 @@ void Server::handle_job_webhook(const json &req_body, const std::string &job_nam
         return;
     }
 
-    spdlog::info(job.get_retry_amount());
-    spdlog::info(requested_retry_amount);
-
     if (job.get_retry_amount() >= requested_retry_amount) {
         spdlog::info("job retry_amount reached! terminating with success!");
         job_manager.remove_job(pipeline_id);
@@ -161,8 +155,8 @@ void Server::handle_job_webhook(const json &req_body, const std::string &job_nam
 }
 
 std::optional<nlohmann::json> Server::get_pipeline_jobs(const int &project_id, const int &pipeline_id) const {
-    httplib::Result jobs = this->gitlab_client.Get(
-        std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id));
+    const std::string &path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
+    httplib::Result jobs = this->gitlab_client.Get(path);
 
     if (!json::accept(jobs->body))
         return std::nullopt;

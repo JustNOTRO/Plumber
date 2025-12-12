@@ -25,8 +25,6 @@ public:
 
     [[nodiscard]] int get_project_id() const;
 
-    void set_project_id(const int &new_project_id);
-
     [[nodiscard]] int get_id() const;
 
     void set_id(const int& new_id);

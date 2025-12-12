@@ -18,10 +18,6 @@ int Job::get_project_id() const {
     return project_id;
 }
 
-void Job::set_project_id(const int &new_project_id) {
-    this->project_id = new_project_id;
-}
-
 int Job::get_id() const {
     return id;
 }
