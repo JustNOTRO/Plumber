@@ -14,8 +14,8 @@ add_executable(Plumber src/main.cpp config.yaml
         src/data/Config.hpp
         src/managers/JobManager.cpp
         src/managers/JobManager.hpp
-        src/Job.cpp
-        src/Job.hpp
+        src/managers/Job.cpp
+        src/managers/Job.hpp
 )
 
 include(FetchContent)

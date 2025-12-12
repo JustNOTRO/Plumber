@@ -3,18 +3,14 @@
 //
 
 #include "JobManager.hpp"
-#include "../Job.hpp"
+#include "Job.hpp"
 #include "../server/Server.hpp"
-
-JobManager::~JobManager() {
-    delete &jobs;
-}
 
 Job JobManager::create_job(const int &pipeline_id, const nlohmann::json &job_body) {
     const int &id = job_body.at("id").get<int>();
     const int &project_id = job_body.at("pipeline").at("project_id").get<int>();
 
-    auto job = Job{id, project_id};
+    auto job = Job(id, project_id);
     jobs.insert({pipeline_id, job});
 
     return job;
