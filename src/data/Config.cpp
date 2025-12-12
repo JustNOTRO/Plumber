@@ -11,12 +11,8 @@ Config::Config() {
     try {
         const std::string path = std::filesystem::current_path().parent_path().string() + "/config.yaml";
         this->node = YAML::LoadFile(path);
-    } catch (std::exception &e) {
-        spdlog::error("Exception caught: {}", e.what());
+    } catch (YAML::ParserException &e) {
+        spdlog::error("Could not load config: ", e.what());
         std::exit(1);
     }
-}
-
-Config::~Config() {
-    delete &node;
 }

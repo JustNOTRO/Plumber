@@ -4,7 +4,6 @@
 
 #pragma once
 #include <nlohmann/json.hpp>
-#include <atomic>
 
 class Job {
 

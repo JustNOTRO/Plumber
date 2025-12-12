@@ -13,8 +13,6 @@
 
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
 class Server final : public httplib::Server {
 public:
     Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client);
@@ -24,11 +22,11 @@ public:
 private:
     bool retry_job(const Job &job) const;
 
-    std::optional<Job> get_job_by_name(const std::string &job_name, const json &req_body);
+    std::optional<Job> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
-    void handle_comment_webhook(const json &req_body, const std::string &bot_username, const std::string &job_name);
+    void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    void handle_job_webhook(const json &req_body, const std::string &job_name);
+    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
 
     std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
 

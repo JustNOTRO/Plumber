@@ -22,7 +22,7 @@ void JobManager::remove_job(const int &pipeline_id) {
 
 Job& JobManager::get_job(const int &pipeline_id) {
     if (!jobs.contains(pipeline_id))
-        throw std::runtime_error("Job does not exist");
+        throw std::runtime_error(std::format("job with pipeline id {}, does not exist", pipeline_id));
 
     Job &job = jobs.at(pipeline_id);
     return job;

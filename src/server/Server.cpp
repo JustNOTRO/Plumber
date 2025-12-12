@@ -5,6 +5,7 @@
 
 Server::Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client)
     : ip(std::move(ip)), port(port), config(config), gitlab_client(gitlab_client), job_manager(JobManager()) {
+
     Post("/retry", [&config, this](const httplib::Request &req, httplib::Response &) {
         const auto bot_username_opt = config.get_value<std::string>("bot_username");
         if (!bot_username_opt.has_value()) {
@@ -12,7 +13,7 @@ Server::Server(const std::string &ip, const std::uint16_t &port, const Config &c
             return;
         }
 
-        if (!json::accept(req.body)) {
+        if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
         }
@@ -23,7 +24,7 @@ Server::Server(const std::string &ip, const std::uint16_t &port, const Config &c
             return;
         }
 
-        const auto &req_body = json::parse(req.body);
+        const auto &req_body = nlohmann::json::parse(req.body);
         const auto &object_kind = req_body.at("object_kind").get<std::string>();
 
         if (object_kind == "build")
@@ -46,7 +47,7 @@ bool Server::retry_job(const Job &job) const {
     return retry_job_res->status == HTTP_CREATED;
 }
 
-std::optional<Job> Server::get_job_by_name(const std::string &job_name, const json &req_body) {
+std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nlohmann::json &req_body) {
     const int &project_id = req_body.at("project_id");
     const int &pipeline_id = req_body.at("merge_request").at("head_pipeline_id");
 
@@ -72,7 +73,7 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const js
     return std::nullopt;
 }
 
-void Server::handle_comment_webhook(const json &req_body, const std::string &bot_username, const std::string &job_name) {
+void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
     const auto &object_attributes = req_body.at("object_attributes");
     const auto &noteable_type = req_body.at("object_attributes").at("noteable_type").get<std::string>();
 
@@ -102,7 +103,7 @@ void Server::handle_comment_webhook(const json &req_body, const std::string &bot
     job.increase_retry_amount();
 }
 
-void Server::handle_job_webhook(const json &req_body, const std::string &job_name) {
+void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name) {
     if (req_body.at("build_name").get<std::string>() != job_name)
         return;
 
@@ -158,9 +159,9 @@ std::optional<nlohmann::json> Server::get_pipeline_jobs(const int &project_id, c
     const std::string &path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
     httplib::Result jobs = this->gitlab_client.Get(path);
 
-    if (!json::accept(jobs->body))
+    if (!nlohmann::json::accept(jobs->body))
         return std::nullopt;
 
-    const auto &jobs_json = json::parse(jobs->body);
+    const auto &jobs_json = nlohmann::json::parse(jobs->body);
     return std::make_optional(jobs_json);
 }
