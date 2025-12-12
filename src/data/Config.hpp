@@ -5,14 +5,11 @@
 #pragma once
 
 #include "yaml-cpp/yaml.h"
-
 #include <optional>
 
 class Config {
 public:
     Config();
-
-    ~Config();
 
     template<typename T>
     std::optional<T> get_value(const std::string& key) const {

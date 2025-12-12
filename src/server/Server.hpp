@@ -4,32 +4,39 @@
 
 #pragma once
 
-#define USER_MENTION_PREFIX "@"
+#define BOT_MENTION_PERFIX "@"
 
 #include "../data/Config.hpp"
-#include "../httplib.h"
+#include "httplib.h"
 #include "spdlog/spdlog.h"
+#include "../managers/JobManager.hpp"
 
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
 class Server final : public httplib::Server {
 public:
-    Server(std::string ip, std::uint16_t port, Config &config, httplib::SSLClient &gitlab_client);
-
-    ~Server() override;
+    Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client);
 
     void start();
 
 private:
-    bool retry_last_pipeline(json &req_body, const nlohmann::basic_json<> &obj_attributes);
+    bool retry_job(const Job &job) const;
 
-    std::string ip;
+    std::optional<Job> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
-    std::uint16_t port;
+    void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    Config &config;
+    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
+
+    std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
+
+    const std::string &ip;
+
+    const std::uint16_t &port;
+
+    const Config &config;
 
     httplib::SSLClient &gitlab_client;
+
+    JobManager job_manager;
 };
