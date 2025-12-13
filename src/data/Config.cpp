@@ -5,11 +5,9 @@
 #include "Config.hpp"
 #include "spdlog/spdlog.h"
 
-#include <filesystem>
-
 Config::Config() {
     try {
-        const std::string path = std::filesystem::current_path().parent_path().string() + "/config.yaml";
+        const std::string path = std::getenv("CONFIG_PATH") ? std::getenv("CONFIG_PATH") : "../config.yaml";
         this->node = YAML::LoadFile(path);
     } catch (YAML::ParserException &e) {
         spdlog::error("Could not load config: ", e.what());
