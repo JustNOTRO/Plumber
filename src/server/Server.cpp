@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "../managers/Job.hpp"
+#include "signal.h"
 
 #define HTTP_CREATED 201
 
@@ -34,9 +35,18 @@ Server::Server(const std::string &ip, const std::uint16_t &port, const Config &c
     });
 }
 
+void handle_exit_signal(const int sig) {
+    spdlog::info("SIGINT received, Exiting...");
+    exit(sig);
+}
+
 void Server::start() {
     spdlog::info("Server is now running on: {}:{}", ip, port);
-    listen(ip, port);
+
+    std::signal(SIGINT, handle_exit_signal);
+
+    const std::uint16_t pterodactyl_port = std::getenv("SERVER_PORT") ? std::stoi(std::getenv("SERVER_PORT")) : 8080;
+    listen(ip, pterodactyl_port);
 }
 
 bool Server::retry_job(const Job &job) const {

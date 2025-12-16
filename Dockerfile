@@ -8,17 +8,14 @@ RUN apk add --no-cache \
     cmake \
     build-base
 
-COPY . /usr/src/Plumber
+# COPY config.yaml /usr/src/Plumber/config.yaml
+COPY src /usr/src/Plumber/src
+COPY CMakeLists.txt /usr/src/Plumber/CMakeLists.txt
+
 WORKDIR /usr/src/Plumber
 
 RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug \
     && cmake --build build
-
-ENV CONFIG_PATH=/usr/src/Plumber/config.yaml
-
-EXPOSE 8080
-
-CMD ["./build/Plumber"]
 
 # ---------- Runtime stage ----------
 FROM alpine:latest as runtime
@@ -34,8 +31,7 @@ ENV CONFIG_PATH=/home/container/config.yaml
 
 WORKDIR /home/container
 
-COPY --from=build /usr/src/Plumber/build/Plumber /home/container/Plumber
-COPY --from=build /usr/src/Plumber/config.yaml /home/container/config.yaml
+COPY --from=build /usr/src/Plumber/build/Plumber /build/Plumber
 
 COPY ./entrypoint.sh /entrypoint.sh
 

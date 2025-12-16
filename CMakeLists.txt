@@ -7,7 +7,7 @@ add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 
 find_package(OpenSSL REQUIRED)
 
-add_executable(Plumber src/main.cpp config.yaml
+add_executable(Plumber src/main.cpp
         src/server/Server.cpp
         src/server/Server.hpp
         src/data/Config.cpp
@@ -15,7 +15,7 @@ add_executable(Plumber src/main.cpp config.yaml
         src/managers/JobManager.cpp
         src/managers/JobManager.hpp
         src/managers/Job.cpp
-        src/managers/Job.hpp
+        src/managers/Job.hpp/
 )
 
 include(FetchContent)
