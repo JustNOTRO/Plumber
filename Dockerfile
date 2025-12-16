@@ -3,12 +3,10 @@ FROM alpine:latest as build
 
 RUN apk add --no-cache \
     git \
-    openssl \
     openssl-dev \
     cmake \
     build-base
 
-# COPY config.yaml /usr/src/Plumber/config.yaml
 COPY src /usr/src/Plumber/src
 COPY CMakeLists.txt /usr/src/Plumber/CMakeLists.txt
 

@@ -7,7 +7,7 @@
 Server::Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client)
     : ip(std::move(ip)), port(port), config(config), gitlab_client(gitlab_client), job_manager(JobManager()) {
 
-    Post("/retry", [&config, this](const httplib::Request &req, httplib::Response &) {
+    Post("/webhook", [&config, this](const httplib::Request &req, httplib::Response &) {
         const auto bot_username_opt = config.get_value<std::string>("bot_username");
         if (!bot_username_opt.has_value()) {
             spdlog::error("bot username not found.");
