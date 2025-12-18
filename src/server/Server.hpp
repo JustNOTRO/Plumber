@@ -6,6 +6,8 @@
 
 #define BOT_MENTION_PERFIX "@"
 
+#include <expected>
+
 #include "../data/Config.hpp"
 #include "httplib.h"
 #include "spdlog/spdlog.h"
@@ -21,7 +23,7 @@ public:
     void start();
 
 private:
-    bool retry_job(const Job &job);
+    void retry_job(const Job &job);
 
     std::optional<Job> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
@@ -29,7 +31,9 @@ private:
 
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
 
-    std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id);
+    std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
+
+    void setup_gitlab_client();
 
     std::string ip;
 

@@ -1,13 +1,5 @@
 #include "Server.hpp"
-
-#include <expected>
-
 #include "../managers/Job.hpp"
-
-#define HTTP_CREATED 201
-#define DEFAULT_IP "0.0.0.0"
-#define DEFAULT_PORT 8080
-#define DEFAULT_GITLAB_INSTANCE "gitlab.com"
 
 std::string require_env(const char *name) {
     const char *v = std::getenv(name);
@@ -25,7 +17,7 @@ std::uint16_t require_port(const char *name) {
     try {
         return std::stoul(v);
     } catch (std::exception &e) {
-        spdlog::error("could not parse {}", v);
+        spdlog::error("could not parse {}, {}", v, e.what());
         std::exit(1);
     }
 }
@@ -40,24 +32,53 @@ std::string require_http_format(const char *name) {
     return env;
 }
 
+std::expected<int, std::string> require_retry_amount(const char* name) {
+    std::string env = require_env(name);
+
+    try {
+        return std::stoi(env);
+    } catch (std::exception &e) {
+        return std::unexpected<std::string>(e.what());
+    }
+}
+
+void handle_exit_signal(int __attribute__((unused)) signal) {
+    spdlog::info("Stopping the server..");
+    std::exit(0);
+}
+
 Server::Server()
     : ip(require_env("SERVER_IP")),
       port(require_port("SERVER_PORT")),
-      gitlab_client(httplib::Client(require_http_format("GITLAB_INSTANCE"))) {
+      gitlab_client(httplib::Client(require_http_format("GITLAB_INSTANCE"))) {}
 
-    const auto &gitlab_access_token = config.get_value<std::string>("gitlab_access_token");
-    if (!gitlab_access_token) {
-        spdlog::error("gitlab access token not found.");
-        std::exit(1);
-    }
+void Server::setup_gitlab_client() {
+    std::string gitlab_access_token = require_env("GITLAB_ACCESS_TOKEN");
 
-    gitlab_client.set_default_headers({{"PRIVATE-TOKEN", gitlab_access_token.value()}});
-}
+    gitlab_client.set_default_headers({{"PRIVATE-TOKEN", gitlab_access_token}});
+    gitlab_client.set_error_logger([](const httplib::Error &err, const httplib::Request *req) {
+        if (req)
+            spdlog::error("{} {}", req->method, req->path);
 
+        spdlog::error("failed: {}", httplib::to_string(err));
 
-void handle_exit_signal(const int sig) {
-    spdlog::info("Stopping the server..");
-    std::exit(0);
+        switch (err) {
+            case httplib::Error::Connection:
+                spdlog::error("(verify server is running and reachable)");
+                break;
+            case httplib::Error::SSLConnection:
+                spdlog::error(" (check SSL certificate and TLS configuration)");
+                break;
+            case httplib::Error::ConnectionTimeout:
+                spdlog::error(" (increase timeout or check network latency)");
+                break;
+            case httplib::Error::Read:
+                spdlog::error(" (server may have closed connection prematurely)");
+                break;
+            default:
+                break;
+        }
+    });
 }
 
 void Server::start() {
@@ -66,31 +87,23 @@ void Server::start() {
         std::exit(1);
     }
 
+    setup_gitlab_client();
+
     Post("/webhook", [this](const httplib::Request &req, httplib::Response &) {
-        const auto bot_username_opt = config.get_value<std::string>("bot_username");
-        if (!bot_username_opt.has_value()) {
-            spdlog::error("bot username not found.");
-            return;
-        }
+        const auto bot_username = require_env("BOT_USERNAME");
 
         if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
         }
 
-        const auto &job_name = config.get_value<std::string>("job_name");
-        if (!job_name.has_value()) {
-            spdlog::error("job name not found");
-            return;
-        }
+        const auto job_name = require_env("JOB_NAME");
+        const auto req_body = nlohmann::json::parse(req.body);
 
-        const auto &req_body = nlohmann::json::parse(req.body);
-        const auto &object_kind = req_body.at("object_kind").get<std::string>();
-
-        if (object_kind == "build")
-            handle_job_webhook(req_body, job_name.value());
+        if (const auto object_kind = req_body.at("object_kind").get<std::string>(); object_kind == "build")
+            handle_job_webhook(req_body, job_name);
         else
-            handle_comment_webhook(req_body, bot_username_opt.value(), job_name.value());
+            handle_comment_webhook(req_body, bot_username, job_name);
     });
 
     spdlog::info("Server is now running on: {}:{}", ip, port);
@@ -99,10 +112,10 @@ void Server::start() {
     listen(ip, port);
 }
 
-bool Server::retry_job(const Job &job) {
-    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
-    httplib::Result retry_job_res = this->gitlab_client.Post(path);
-    return retry_job_res->status == HTTP_CREATED;
+void Server::retry_job(const Job &job) {
+    // todo fix the path here
+    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry/t", job.get_project_id(), job.get_id());
+    const httplib::Result res = this->gitlab_client.Post(path);
 }
 
 std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nlohmann::json &req_body) {
@@ -131,20 +144,29 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nl
     return std::nullopt;
 }
 
+nlohmann::basic_json<> require_node(const nlohmann::json &json, const std::string &name) {
+    if (!json.contains(name)) {
+        spdlog::error("could not find {}", name);
+        std::exit(1);
+    }
+
+    return json.at(name);
+}
+
 void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
-    const auto &object_attributes = req_body.at("object_attributes");
-    const auto &noteable_type = req_body.at("object_attributes").at("noteable_type").get<std::string>();
+    const auto object_attributes = require_node(req_body, "object_attributes");
+    const auto noteable_type = require_node(object_attributes, "noteable_type").get<std::string>();
 
     if (noteable_type != "MergeRequest")
         return;
 
-    const auto &note = object_attributes.at("note").get<std::string>();
+    const auto note = require_node(object_attributes, "note").get<std::string>();
     if (!note.contains(BOT_MENTION_PERFIX + bot_username))
         return;
 
     std::optional<Job> job_opt = get_job_by_name(job_name, req_body);
 
-    if (!job_opt.has_value()) {
+    if (!job_opt) {
         spdlog::error("requested job {} not found.", job_name);
         return;
     }
@@ -153,22 +175,25 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     if (job.get_status() == Job::Status::FAILED)
         return;
 
-    if (retry_job(job))
-        spdlog::info("Retried job {} for {}x times", job_name, job.get_retry_amount());
-    else
-        spdlog::error("Failed to retry job {}", job_name);
-
+    retry_job(job);
     job.increase_retry_amount();
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name) {
-    if (req_body.at("build_name").get<std::string>() != job_name)
+    const auto build_name = require_node(req_body, "build_name").get<std::string>();
+    if (build_name != job_name)
         return;
 
     const int &job_id = req_body.at("build_id").get<int>();
     const int &pipeline_id = req_body.at("pipeline_id").get<int>();
 
-    Job &job = job_manager.get_job(pipeline_id);
+    auto expected_job = job_manager.get_job(pipeline_id);
+    if (!expected_job.has_value()) {
+        spdlog::error("failed to retrieve job, {}", expected_job.error());
+        return;
+    }
+
+    Job &job = expected_job.value();
     job.set_id(job_id);
 
     if (const auto &status = req_body.at("build_status").get<std::string>(); status == "created")
@@ -191,8 +216,13 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
     if (job.get_status() != Job::Status::SUCCESS)
         return;
 
-    const int requested_retry_amount = config.get_value<int>("retry_amount").value_or(1);
+    const std::expected<int, std::string> expected_retry_amount = require_retry_amount("RETRY_AMOUNT");
+    if (!expected_retry_amount.has_value()) {
+        spdlog::error("failed to retrieve RETRY_AMOUNT");
+        return;
+    }
 
+    const int requested_retry_amount = expected_retry_amount.value();
     if (requested_retry_amount <= 0) {
         spdlog::error("retry amount must be greater than 0.");
         return;
@@ -206,14 +236,10 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
 
     job.set_name(job_name);
     job.increase_retry_amount();
-
-    if (retry_job(job))
-        spdlog::info("Retried job {} for {}x times", job.get_name(), job.get_retry_amount());
-    else
-        spdlog::error("Failed to retry job {}", job.get_name());
+    retry_job(job);
 }
 
-std::optional<nlohmann::json> Server::get_pipeline_jobs(const int &project_id, const int &pipeline_id) {
+std::optional<nlohmann::json> Server::get_pipeline_jobs(int project_id, int pipeline_id) {
     const std::string path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
     httplib::Result jobs = this->gitlab_client.Get(path);
 
