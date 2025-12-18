@@ -13,14 +13,15 @@
 
 #include <nlohmann/json.hpp>
 
+
 class Server final : public httplib::Server {
 public:
-    Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client);
+    Server();
 
     void start();
 
 private:
-    bool retry_job(const Job &job) const;
+    bool retry_job(const Job &job);
 
     std::optional<Job> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
@@ -28,15 +29,15 @@ private:
 
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
 
-    std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
+    std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id);
 
-    const std::string &ip;
+    std::string ip;
 
-    const std::uint16_t &port;
+    std::uint16_t port;
 
-    const Config &config;
+    Config config;
 
-    httplib::SSLClient &gitlab_client;
+    httplib::Client gitlab_client;
 
     JobManager job_manager;
 };

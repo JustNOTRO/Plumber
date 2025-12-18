@@ -1,13 +1,72 @@
 #include "Server.hpp"
+
+#include <expected>
+
 #include "../managers/Job.hpp"
-#include "signal.h"
 
 #define HTTP_CREATED 201
+#define DEFAULT_IP "0.0.0.0"
+#define DEFAULT_PORT 8080
+#define DEFAULT_GITLAB_INSTANCE "gitlab.com"
 
-Server::Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client)
-    : ip(std::move(ip)), port(port), config(config), gitlab_client(gitlab_client), job_manager(JobManager()) {
+std::string require_env(const char *name) {
+    const char *v = std::getenv(name);
+    if (!v) {
+        spdlog::error("{} is not set", name);
+        std::exit(1);
+    }
 
-    Post("/webhook", [&config, this](const httplib::Request &req, httplib::Response &) {
+    return v;
+}
+
+std::uint16_t require_port(const char *name) {
+    std::string v = require_env(name);
+
+    try {
+        return std::stoul(v);
+    } catch (std::exception &e) {
+        spdlog::error("could not parse {}", v);
+        std::exit(1);
+    }
+}
+
+std::string require_http_format(const char *name) {
+    std::string env = require_env(name);
+    if (!env.starts_with("http://") && !env.starts_with("https://")) {
+        spdlog::error("could not parse {}, invalid http format", name);
+        std::exit(1);
+    }
+
+    return env;
+}
+
+Server::Server()
+    : ip(require_env("SERVER_IP")),
+      port(require_port("SERVER_PORT")),
+      gitlab_client(httplib::Client(require_http_format("GITLAB_INSTANCE"))) {
+
+    const auto &gitlab_access_token = config.get_value<std::string>("gitlab_access_token");
+    if (!gitlab_access_token) {
+        spdlog::error("gitlab access token not found.");
+        std::exit(1);
+    }
+
+    gitlab_client.set_default_headers({{"PRIVATE-TOKEN", gitlab_access_token.value()}});
+}
+
+
+void handle_exit_signal(const int sig) {
+    spdlog::info("Stopping the server..");
+    std::exit(0);
+}
+
+void Server::start() {
+    if (!bind_to_port(ip, port)) {
+        spdlog::error("Could not bind address {} to port: {}", ip, port);
+        std::exit(1);
+    }
+
+    Post("/webhook", [this](const httplib::Request &req, httplib::Response &) {
         const auto bot_username_opt = config.get_value<std::string>("bot_username");
         if (!bot_username_opt.has_value()) {
             spdlog::error("bot username not found.");
@@ -33,27 +92,16 @@ Server::Server(const std::string &ip, const std::uint16_t &port, const Config &c
         else
             handle_comment_webhook(req_body, bot_username_opt.value(), job_name.value());
     });
-}
 
-void handle_exit_signal(const int sig) {
-    spdlog::info("SIGINT received, Exiting...");
-    exit(sig);
-}
-
-void Server::start() {
     spdlog::info("Server is now running on: {}:{}", ip, port);
+    std::signal(SIGTERM, handle_exit_signal);
 
-    std::signal(SIGINT, handle_exit_signal);
-
-    const std::uint16_t pterodactyl_port = std::getenv("SERVER_PORT") ? std::stoi(std::getenv("SERVER_PORT")) : 8080;
-    listen(ip, pterodactyl_port);
+    listen(ip, port);
 }
 
-bool Server::retry_job(const Job &job) const {
-    httplib::Result retry_job_res = this->gitlab_client.Post(
-        std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id())
-    );
-
+bool Server::retry_job(const Job &job) {
+    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
+    httplib::Result retry_job_res = this->gitlab_client.Post(path);
     return retry_job_res->status == HTTP_CREATED;
 }
 
@@ -165,8 +213,8 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
         spdlog::error("Failed to retry job {}", job.get_name());
 }
 
-std::optional<nlohmann::json> Server::get_pipeline_jobs(const int &project_id, const int &pipeline_id) const {
-    const std::string &path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
+std::optional<nlohmann::json> Server::get_pipeline_jobs(const int &project_id, const int &pipeline_id) {
+    const std::string path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
     httplib::Result jobs = this->gitlab_client.Get(path);
 
     if (!nlohmann::json::accept(jobs->body))
