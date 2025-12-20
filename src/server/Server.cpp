@@ -32,13 +32,14 @@ std::string require_http_format(const char *name) {
     return env;
 }
 
-std::expected<int, std::string> require_retry_amount(const char* name) {
-    std::string env = require_env(name);
+int require_retry_amount(const char *name) {
+    const std::string env = require_env(name);
 
     try {
         return std::stoi(env);
     } catch (std::exception &e) {
-        return std::unexpected<std::string>(e.what());
+        spdlog::error("could not parse {} {}", name, e.what());
+        std::exit(1);
     }
 }
 
@@ -90,20 +91,27 @@ void Server::start() {
     setup_gitlab_client();
 
     Post("/webhook", [this](const httplib::Request &req, httplib::Response &) {
-        const auto bot_username = require_env("BOT_USERNAME");
-
         if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
         }
 
+        const auto bot_username = require_env("BOT_USERNAME");
         const auto job_name = require_env("JOB_NAME");
         const auto req_body = nlohmann::json::parse(req.body);
 
-        if (const auto object_kind = req_body.at("object_kind").get<std::string>(); object_kind == "build")
+        const auto object_kind = get_node<std::string>(req_body, "object_kind");
+        if (!object_kind.has_value()) {
+            spdlog::error(object_kind.error());
+            return;
+        }
+
+        if (object_kind.value() == "build")
             handle_job_webhook(req_body, job_name);
-        else
+        else if (object_kind.value() == "note")
             handle_comment_webhook(req_body, bot_username, job_name);
+        else
+            spdlog::error("unsupported object kind: {}", object_kind.value());
     });
 
     spdlog::info("Server is now running on: {}:{}", ip, port);
@@ -113,30 +121,43 @@ void Server::start() {
 }
 
 void Server::retry_job(const Job &job) {
-    // todo fix the path here
-    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry/t", job.get_project_id(), job.get_id());
-    const httplib::Result res = this->gitlab_client.Post(path);
+    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
+    if (const httplib::Result res = gitlab_client.Post(path); res && res->status == 201)
+        spdlog::info("successfully retried job {} for {}x times", job.get_name(), job.get_retry_amount());
+    else
+        spdlog::error("failed to retry job {} with status {}", job.get_name(), res->status);
 }
 
 std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nlohmann::json &req_body) {
-    const int &project_id = req_body.at("project_id");
-    const int &pipeline_id = req_body.at("merge_request").at("head_pipeline_id");
+    const auto project_id = get_node<int>(req_body, "project_id");
+    const auto merge_request = get_node<nlohmann::json>(req_body, "merge_request");
 
-    const std::optional<nlohmann::json> jobs_opt = get_pipeline_jobs(project_id, pipeline_id);
+    if (!merge_request.has_value()) {
+        spdlog::error(merge_request.error());
+        return std::nullopt;
+    }
 
-    if (!jobs_opt.has_value())
+    const auto pipeline_id = get_node<int>(merge_request.value(), "head_pipeline_id");
+    if (!pipeline_id.has_value()) {
+        spdlog::error(merge_request.error());
+        return std::nullopt;
+    }
+
+    // todo use std::expected
+    const auto jobs_opt = get_pipeline_jobs(project_id.value(), pipeline_id.value());
+    if (!jobs_opt)
         return std::nullopt;
 
     for (const auto &jobs = jobs_opt.value(); const auto &other_job: jobs) {
         if (other_job.at("name") != job_name)
             continue;
 
-        Job job = job_manager.create_job(pipeline_id, other_job);
+        Job job = job_manager.create_job(pipeline_id.value(), other_job);
 
-        if (const auto &status = other_job.at("status").get<std::string>(); status == "success")
-            job.set_status(Job::Status::SUCCESS);
-        else if (status == "failed")
-            job.set_status(Job::Status::FAILED);
+        if (const auto job_status = get_node<std::string>(other_job, "status"); job_status.has_value())
+            job.set_status(job_status.value());
+        else
+            spdlog::error(job_status.error());
 
         return std::make_optional(job);
     }
@@ -144,24 +165,30 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nl
     return std::nullopt;
 }
 
-nlohmann::basic_json<> require_node(const nlohmann::json &json, const std::string &name) {
-    if (!json.contains(name)) {
-        spdlog::error("could not find {}", name);
-        std::exit(1);
+void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
+    const auto obj_attributes = get_node<nlohmann::json>(req_body, "object_attributes");
+    if (!obj_attributes.has_value()) {
+        spdlog::error(obj_attributes.error());
+        return;
     }
 
-    return json.at(name);
-}
+    const auto noteable_type = get_node<std::string>(obj_attributes.value(), "noteable_type");
 
-void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
-    const auto object_attributes = require_node(req_body, "object_attributes");
-    const auto noteable_type = require_node(object_attributes, "noteable_type").get<std::string>();
+    if (!noteable_type.has_value()) {
+        spdlog::error(noteable_type.error());
+        return;
+    }
 
-    if (noteable_type != "MergeRequest")
+    if (noteable_type.value() != "MergeRequest")
         return;
 
-    const auto note = require_node(object_attributes, "note").get<std::string>();
-    if (!note.contains(BOT_MENTION_PERFIX + bot_username))
+    const auto note = get_node<std::string>(obj_attributes.value(), "note");
+    if (!note.has_value()) {
+        spdlog::error(note.error());
+        return;
+    }
+
+    if (!note.value().contains(BOT_MENTION_PREFIX + bot_username))
         return;
 
     std::optional<Job> job_opt = get_job_by_name(job_name, req_body);
@@ -172,7 +199,7 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     }
 
     Job &job = job_opt.value();
-    if (job.get_status() == Job::Status::FAILED)
+    if (job.get_status() == "failed")
         return;
 
     retry_job(job);
@@ -180,49 +207,54 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name) {
-    const auto build_name = require_node(req_body, "build_name").get<std::string>();
-    if (build_name != job_name)
+    const auto build_name = get_node<std::string>(req_body, "build_name");
+    if (!build_name.has_value()) {
+        spdlog::error(build_name.error());
+        return;
+    }
+
+    if (build_name.value() != job_name)
         return;
 
-    const int &job_id = req_body.at("build_id").get<int>();
-    const int &pipeline_id = req_body.at("pipeline_id").get<int>();
+    const auto job_id = get_node<int>(req_body, "build_id");
+    if (!job_id.has_value()) {
+        spdlog::error(job_id.error());
+        return;
+    }
 
-    auto expected_job = job_manager.get_job(pipeline_id);
+    const auto job_status = get_node<std::string>(req_body, "build_status");
+
+    if (!job_status.has_value()) {
+        spdlog::error(job_status.error());
+        return;
+    }
+
+    const auto pipeline_id = get_node<int>(req_body, "pipeline_id");
+    if (!pipeline_id.has_value()) {
+        spdlog::error(pipeline_id.error());
+        return;
+    }
+
+    auto expected_job = job_manager.get_job(pipeline_id.value());
     if (!expected_job.has_value()) {
         spdlog::error("failed to retrieve job, {}", expected_job.error());
         return;
     }
 
     Job &job = expected_job.value();
-    job.set_id(job_id);
+    job.set_id(job_id.value());
+    job.set_status(job_status.value());
 
-    if (const auto &status = req_body.at("build_status").get<std::string>(); status == "created")
-        job.set_status(Job::Status::CREATED);
-    else if (status == "pending")
-        job.set_status(Job::Status::PENDING);
-    else if (status == "running")
-        job.set_status(Job::Status::RUNNING);
-    else if (status == "success")
-        job.set_status(Job::Status::SUCCESS);
-    else if (status == "failed")
-        job.set_status(Job::Status::FAILED);
-
-    if (job.get_status() == Job::Status::FAILED) {
-        job_manager.remove_job(pipeline_id);
+    if (job_status.value() == "failed") {
+        job_manager.remove_job(pipeline_id.value());
         spdlog::error("job {} failed! terminating..", job_name);
         return;
     }
 
-    if (job.get_status() != Job::Status::SUCCESS)
+    if (job_status.value() != "success")
         return;
 
-    const std::expected<int, std::string> expected_retry_amount = require_retry_amount("RETRY_AMOUNT");
-    if (!expected_retry_amount.has_value()) {
-        spdlog::error("failed to retrieve RETRY_AMOUNT");
-        return;
-    }
-
-    const int requested_retry_amount = expected_retry_amount.value();
+    const int requested_retry_amount = require_retry_amount("RETRY_AMOUNT");
     if (requested_retry_amount <= 0) {
         spdlog::error("retry amount must be greater than 0.");
         return;
@@ -230,7 +262,7 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
 
     if (job.get_retry_amount() >= requested_retry_amount) {
         spdlog::info("job retry_amount reached! terminating with success!");
-        job_manager.remove_job(pipeline_id);
+        job_manager.remove_job(pipeline_id.value());
         return;
     }
 

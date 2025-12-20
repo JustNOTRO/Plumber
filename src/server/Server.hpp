@@ -4,11 +4,8 @@
 
 #pragma once
 
-#define BOT_MENTION_PERFIX "@"
+#define BOT_MENTION_PREFIX "@"
 
-#include <expected>
-
-#include "../data/Config.hpp"
 #include "httplib.h"
 #include "spdlog/spdlog.h"
 #include "../managers/JobManager.hpp"
@@ -35,11 +32,19 @@ private:
 
     void setup_gitlab_client();
 
+    template<typename T>
+    std::expected<T, std::string> get_node(const nlohmann::json &json, const std::string &name) {
+        if (!json.contains(name)) {
+            auto err = std::format("could not find {}", name);
+            return std::unexpected(err);
+        }
+
+        return json.at(name).get<T>();
+    }
+
     std::string ip;
 
     std::uint16_t port;
-
-    Config config;
 
     httplib::Client gitlab_client;
 

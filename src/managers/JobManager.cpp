@@ -12,7 +12,6 @@ Job JobManager::create_job(int pipeline_id, const nlohmann::json &job_body) {
 
     auto job = Job(id, project_id);
     jobs.insert({pipeline_id, job});
-
     return job;
 }
 
@@ -20,7 +19,7 @@ void JobManager::remove_job(int pipeline_id) {
     jobs.erase(pipeline_id);
 }
 
-std::expected<std::reference_wrapper<Job>, std::string> JobManager::get_job(const int pipeline_id) {
+std::expected<std::reference_wrapper<Job>, std::string> JobManager::get_job(int pipeline_id) const {
     if (!jobs.contains(pipeline_id))
         return std::unexpected("job not found");
 

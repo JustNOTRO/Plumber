@@ -16,7 +16,7 @@ public:
 
     void remove_job(int pipeline_id);
 
-    std::expected<std::reference_wrapper<Job>, std::string> get_job(int pipeline_id);
+    [[nodiscard]] std::expected<std::reference_wrapper<Job>, std::string> get_job(int pipeline_id) const;
 private:
     std::unordered_map<int, Job> jobs = {};
 };
