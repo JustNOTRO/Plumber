@@ -19,7 +19,7 @@ void JobManager::remove_job(int pipeline_id) {
     jobs.erase(pipeline_id);
 }
 
-std::expected<std::reference_wrapper<Job>, std::string> JobManager::get_job(int pipeline_id) const {
+std::expected<std::reference_wrapper<Job>, std::string> JobManager::get_job(int pipeline_id) {
     if (!jobs.contains(pipeline_id))
         return std::unexpected("job not found");
 

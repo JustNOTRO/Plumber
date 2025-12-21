@@ -12,11 +12,11 @@
 
 class JobManager {
 public:
-    Job create_job(int pipeline_id, const nlohmann::json &job_body);
+    [[nodiscard]] Job create_job(int pipeline_id, const nlohmann::json &job_body);
 
     void remove_job(int pipeline_id);
 
-    [[nodiscard]] std::expected<std::reference_wrapper<Job>, std::string> get_job(int pipeline_id) const;
+    [[nodiscard]] std::expected<std::reference_wrapper<Job>, std::string> get_job(int pipeline_id);
 private:
     std::unordered_map<int, Job> jobs = {};
 };

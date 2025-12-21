@@ -25,7 +25,7 @@ std::uint16_t require_port(const char *name) {
 std::string require_http_format(const char *name) {
     std::string env = require_env(name);
     if (!env.starts_with("http://") && !env.starts_with("https://")) {
-        spdlog::error("could not parse {}, invalid http format", name);
+        spdlog::error("could not parse {}, invalid URL scheme", name);
         std::exit(1);
     }
 
@@ -51,11 +51,12 @@ void handle_exit_signal(int __attribute__((unused)) signal) {
 Server::Server()
     : ip(require_env("SERVER_IP")),
       port(require_port("SERVER_PORT")),
-      gitlab_client(httplib::Client(require_http_format("GITLAB_INSTANCE"))) {}
+      gitlab_client(require_http_format("GITLAB_INSTANCE")) {}
 
 void Server::setup_gitlab_client() {
     std::string gitlab_access_token = require_env("GITLAB_ACCESS_TOKEN");
 
+    gitlab_client.enable_server_certificate_verification(false);
     gitlab_client.set_default_headers({{"PRIVATE-TOKEN", gitlab_access_token}});
     gitlab_client.set_error_logger([](const httplib::Error &err, const httplib::Request *req) {
         if (req)
@@ -83,14 +84,10 @@ void Server::setup_gitlab_client() {
 }
 
 void Server::start() {
-    if (!bind_to_port(ip, port)) {
-        spdlog::error("Could not bind address {} to port: {}", ip, port);
-        std::exit(1);
-    }
-
     setup_gitlab_client();
 
-    Post("/webhook", [this](const httplib::Request &req, httplib::Response &) {
+    Post("/webhook", [this](const httplib::Request &req, httplib::Response &res) {
+        spdlog::info("test");
         if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
@@ -101,7 +98,7 @@ void Server::start() {
         const auto req_body = nlohmann::json::parse(req.body);
 
         const auto object_kind = get_node<std::string>(req_body, "object_kind");
-        if (!object_kind.has_value()) {
+        if (!object_kind) {
             spdlog::error(object_kind.error());
             return;
         }
@@ -112,6 +109,9 @@ void Server::start() {
             handle_comment_webhook(req_body, bot_username, job_name);
         else
             spdlog::error("unsupported object kind: {}", object_kind.value());
+
+        res.status = 200;
+        res.set_content("test", "text/plain");
     });
 
     spdlog::info("Server is now running on: {}:{}", ip, port);
@@ -132,13 +132,13 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nl
     const auto project_id = get_node<int>(req_body, "project_id");
     const auto merge_request = get_node<nlohmann::json>(req_body, "merge_request");
 
-    if (!merge_request.has_value()) {
+    if (!merge_request) {
         spdlog::error(merge_request.error());
         return std::nullopt;
     }
 
     const auto pipeline_id = get_node<int>(merge_request.value(), "head_pipeline_id");
-    if (!pipeline_id.has_value()) {
+    if (!pipeline_id) {
         spdlog::error(merge_request.error());
         return std::nullopt;
     }
@@ -167,14 +167,14 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nl
 
 void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
     const auto obj_attributes = get_node<nlohmann::json>(req_body, "object_attributes");
-    if (!obj_attributes.has_value()) {
+    if (!obj_attributes) {
         spdlog::error(obj_attributes.error());
         return;
     }
 
     const auto noteable_type = get_node<std::string>(obj_attributes.value(), "noteable_type");
 
-    if (!noteable_type.has_value()) {
+    if (!noteable_type) {
         spdlog::error(noteable_type.error());
         return;
     }
@@ -183,7 +183,7 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
         return;
 
     const auto note = get_node<std::string>(obj_attributes.value(), "note");
-    if (!note.has_value()) {
+    if (!note) {
         spdlog::error(note.error());
         return;
     }
@@ -202,13 +202,15 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     if (job.get_status() == "failed")
         return;
 
+    job.set_name(job_name);
+
     retry_job(job);
     job.increase_retry_amount();
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name) {
     const auto build_name = get_node<std::string>(req_body, "build_name");
-    if (!build_name.has_value()) {
+    if (!build_name) {
         spdlog::error(build_name.error());
         return;
     }
@@ -217,26 +219,26 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
         return;
 
     const auto job_id = get_node<int>(req_body, "build_id");
-    if (!job_id.has_value()) {
+    if (!job_id) {
         spdlog::error(job_id.error());
         return;
     }
 
     const auto job_status = get_node<std::string>(req_body, "build_status");
 
-    if (!job_status.has_value()) {
+    if (!job_status) {
         spdlog::error(job_status.error());
         return;
     }
 
     const auto pipeline_id = get_node<int>(req_body, "pipeline_id");
-    if (!pipeline_id.has_value()) {
+    if (!pipeline_id) {
         spdlog::error(pipeline_id.error());
         return;
     }
 
     auto expected_job = job_manager.get_job(pipeline_id.value());
-    if (!expected_job.has_value()) {
+    if (!expected_job) {
         spdlog::error("failed to retrieve job, {}", expected_job.error());
         return;
     }

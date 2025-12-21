@@ -28,7 +28,7 @@ int Job::get_retry_amount() const {
     return retry_amount;
 }
 
-std::string Job::get_name() const {
+const std::string &Job::get_name() const {
     return this->name;
 }
 
@@ -36,7 +36,7 @@ void Job::set_name(const std::string &new_name) {
     this->name = new_name;
 }
 
-std::string& Job::get_status() {
+const std::string& Job::get_status() {
     return status;
 }
 
