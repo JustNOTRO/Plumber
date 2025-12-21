@@ -87,7 +87,6 @@ void Server::start() {
     setup_gitlab_client();
 
     Post("/webhook", [this](const httplib::Request &req, httplib::Response &res) {
-        spdlog::info("test");
         if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
@@ -109,9 +108,6 @@ void Server::start() {
             handle_comment_webhook(req_body, bot_username, job_name);
         else
             spdlog::error("unsupported object kind: {}", object_kind.value());
-
-        res.status = 200;
-        res.set_content("test", "text/plain");
     });
 
     spdlog::info("Server is now running on: {}:{}", ip, port);
