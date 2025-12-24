@@ -20,15 +20,15 @@ public:
     void start();
 
 private:
-    void retry_job(const Job &job);
+    void retry_job(Job &job);
 
-    std::optional<Job> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
+    [[nodicard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
     void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
 
-    std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
+    [[nodiscard]] std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
 
     void setup_gitlab_client();
 

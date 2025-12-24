@@ -12,7 +12,7 @@
 
 class JobManager {
 public:
-    [[nodiscard]] Job create_job(int pipeline_id, const nlohmann::json &job_body);
+    [[nodiscard]] Job& create_job(int pipeline_id, const nlohmann::json &job_body);
 
     void remove_job(int pipeline_id);
 

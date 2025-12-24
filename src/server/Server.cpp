@@ -84,9 +84,14 @@ void Server::setup_gitlab_client() {
 }
 
 void Server::start() {
+    if (!bind_to_port(ip, port)) {
+        spdlog::error("failed to bind address {} to port {}.", ip, port);
+        std::exit(1);
+    }
+
     setup_gitlab_client();
 
-    Post("/webhook", [this](const httplib::Request &req, httplib::Response &res) {
+    Post("/webhook", [this](const httplib::Request &req, httplib::Response &) {
         if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
@@ -113,10 +118,12 @@ void Server::start() {
     spdlog::info("Server is now running on: {}:{}", ip, port);
     std::signal(SIGTERM, handle_exit_signal);
 
-    listen(ip, port);
+    listen_after_bind();
 }
 
-void Server::retry_job(const Job &job) {
+void Server::retry_job(Job &job) {
+    job.increase_retry_amount();
+
     const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
     if (const httplib::Result res = gitlab_client.Post(path); res && res->status == 201)
         spdlog::info("successfully retried job {} for {}x times", job.get_name(), job.get_retry_amount());
@@ -124,7 +131,7 @@ void Server::retry_job(const Job &job) {
         spdlog::error("failed to retry job {} with status {}", job.get_name(), res->status);
 }
 
-std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nlohmann::json &req_body) {
+std::optional<std::reference_wrapper<Job>> Server::get_job_by_name(const std::string &job_name, const nlohmann::json &req_body) {
     const auto project_id = get_node<int>(req_body, "project_id");
     const auto merge_request = get_node<nlohmann::json>(req_body, "merge_request");
 
@@ -148,14 +155,14 @@ std::optional<Job> Server::get_job_by_name(const std::string &job_name, const nl
         if (other_job.at("name") != job_name)
             continue;
 
-        Job job = job_manager.create_job(pipeline_id.value(), other_job);
+        Job &job = job_manager.create_job(pipeline_id.value(), other_job);
 
         if (const auto job_status = get_node<std::string>(other_job, "status"); job_status.has_value())
             job.set_status(job_status.value());
         else
             spdlog::error(job_status.error());
 
-        return std::make_optional(job);
+        return job;
     }
 
     return std::nullopt;
@@ -187,7 +194,7 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     if (!note.value().contains(BOT_MENTION_PREFIX + bot_username))
         return;
 
-    std::optional<Job> job_opt = get_job_by_name(job_name, req_body);
+    const auto job_opt = get_job_by_name(job_name, req_body);
 
     if (!job_opt) {
         spdlog::error("requested job {} not found.", job_name);
@@ -195,13 +202,14 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     }
 
     Job &job = job_opt.value();
-    if (job.get_status() == "failed")
-        return;
-
     job.set_name(job_name);
 
+    if (job.get_status() != "success") {
+        spdlog::error("job {} is not in success state, cannot retry.", job_name);
+        return;
+    }
+
     retry_job(job);
-    job.increase_retry_amount();
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name) {
@@ -252,21 +260,18 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
     if (job_status.value() != "success")
         return;
 
-    const int requested_retry_amount = require_retry_amount("RETRY_AMOUNT");
-    if (requested_retry_amount <= 0) {
+    const int required_retry_amount = require_retry_amount("RETRY_AMOUNT");
+    if (required_retry_amount <= 0) {
         spdlog::error("retry amount must be greater than 0.");
         return;
     }
 
-    if (job.get_retry_amount() >= requested_retry_amount) {
+    if (job.get_retry_amount() >= required_retry_amount) {
         spdlog::info("job retry_amount reached! terminating with success!");
         job_manager.remove_job(pipeline_id.value());
-        return;
+    } else {
+        retry_job(job);
     }
-
-    job.set_name(job_name);
-    job.increase_retry_amount();
-    retry_job(job);
 }
 
 std::optional<nlohmann::json> Server::get_pipeline_jobs(int project_id, int pipeline_id) {

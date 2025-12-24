@@ -6,7 +6,7 @@
 
 #include "spdlog/spdlog.h"
 
-Job::Job(const int id, const int project_id) : id(id), project_id(project_id), retry_amount(1) {}
+Job::Job(const int id, const int project_id) : id(id), project_id(project_id), retry_amount(0) {}
 
 void Job::increase_retry_amount() {
     retry_amount++;
@@ -36,7 +36,7 @@ void Job::set_name(const std::string &new_name) {
     this->name = new_name;
 }
 
-const std::string& Job::get_status() {
+const std::string& Job::get_status() const {
     return status;
 }
 

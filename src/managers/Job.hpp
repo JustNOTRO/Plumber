@@ -24,7 +24,7 @@ public:
 
     void set_name(const std::string &new_name);
 
-    const std::string& get_status();
+    [[nodiscard]] const std::string& get_status() const;
 
     void set_status(const std::string &new_status);
 
