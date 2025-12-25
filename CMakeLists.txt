@@ -13,7 +13,7 @@ add_executable(Plumber src/main.cpp
         src/managers/JobManager.cpp
         src/managers/JobManager.hpp
         src/managers/Job.cpp
-        src/managers/Job.hpp/
+        src/managers/Job.hpp
 )
 
 include(FetchContent)

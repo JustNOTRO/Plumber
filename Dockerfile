@@ -25,7 +25,6 @@ RUN apk add --no-cache bash \
 
 USER container
 ENV  USER=container HOME=/home/container
-ENV CONFIG_PATH=/home/container/config.yaml
 
 WORKDIR /home/container
 

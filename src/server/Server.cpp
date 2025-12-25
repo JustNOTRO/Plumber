@@ -22,7 +22,7 @@ std::uint16_t require_port(const char *name) {
     }
 }
 
-std::string require_http_format(const char *name) {
+std::string require_url_scheme(const char *name) {
     std::string env = require_env(name);
     if (!env.starts_with("http://") && !env.starts_with("https://")) {
         spdlog::error("could not parse {}, invalid URL scheme", name);
@@ -51,12 +51,11 @@ void handle_exit_signal(int __attribute__((unused)) signal) {
 Server::Server()
     : ip(require_env("SERVER_IP")),
       port(require_port("SERVER_PORT")),
-      gitlab_client(require_http_format("GITLAB_INSTANCE")) {}
+      gitlab_client(require_url_scheme("GITLAB_INSTANCE")) {}
 
 void Server::setup_gitlab_client() {
     std::string gitlab_access_token = require_env("GITLAB_ACCESS_TOKEN");
 
-    gitlab_client.enable_server_certificate_verification(false);
     gitlab_client.set_default_headers({{"PRIVATE-TOKEN", gitlab_access_token}});
     gitlab_client.set_error_logger([](const httplib::Error &err, const httplib::Request *req) {
         if (req)
