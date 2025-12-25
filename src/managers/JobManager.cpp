@@ -6,24 +6,22 @@
 #include "Job.hpp"
 #include "../server/Server.hpp"
 
-Job JobManager::create_job(const int &pipeline_id, const nlohmann::json &job_body) {
-    const int &id = job_body.at("id").get<int>();
-    const int &project_id = job_body.at("pipeline").at("project_id").get<int>();
+Job& JobManager::create_job(int pipeline_id, const nlohmann::json &job_body) {
+    const int id = job_body.at("id").get<int>();
+    const int project_id = job_body.at("pipeline").at("project_id").get<int>();
 
     auto job = Job(id, project_id);
     jobs.insert({pipeline_id, job});
-
-    return job;
+    return jobs.at(pipeline_id);
 }
 
-void JobManager::remove_job(const int &pipeline_id) {
+void JobManager::remove_job(int pipeline_id) {
     jobs.erase(pipeline_id);
 }
 
-Job& JobManager::get_job(const int &pipeline_id) {
+std::expected<std::reference_wrapper<Job>, std::string> JobManager::get_job(int pipeline_id) {
     if (!jobs.contains(pipeline_id))
-        throw std::runtime_error(std::format("job with pipeline id {}, does not exist", pipeline_id));
+        return std::unexpected("job not found");
 
-    Job &job = jobs.at(pipeline_id);
-    return job;
+    return jobs.at(pipeline_id);
 }

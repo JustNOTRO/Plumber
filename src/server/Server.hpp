@@ -4,39 +4,49 @@
 
 #pragma once
 
-#define BOT_MENTION_PERFIX "@"
+#define BOT_MENTION_PREFIX "@"
 
-#include "../data/Config.hpp"
 #include "httplib.h"
 #include "spdlog/spdlog.h"
 #include "../managers/JobManager.hpp"
 
 #include <nlohmann/json.hpp>
 
+
 class Server final : public httplib::Server {
 public:
-    Server(const std::string &ip, const std::uint16_t &port, const Config &config, httplib::SSLClient &gitlab_client);
+    Server();
 
     void start();
 
 private:
-    bool retry_job(const Job &job) const;
+    void retry_job(Job &job);
 
-    std::optional<Job> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
+    [[nodicard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
     void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
 
-    std::optional<nlohmann::json> get_pipeline_jobs(const int &project_id, const int &pipeline_id) const;
+    [[nodiscard]] std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
 
-    const std::string &ip;
+    void setup_gitlab_client();
 
-    const std::uint16_t &port;
+    template<typename T>
+    std::expected<T, std::string> get_node(const nlohmann::json &json, const std::string &name) {
+        if (!json.contains(name)) {
+            auto err = std::format("could not find {}", name);
+            return std::unexpected(err);
+        }
 
-    const Config &config;
+        return json.at(name).get<T>();
+    }
 
-    httplib::SSLClient &gitlab_client;
+    std::string ip;
+
+    std::uint16_t port;
+
+    httplib::Client gitlab_client;
 
     JobManager job_manager;
 };

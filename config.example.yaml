@@ -1,7 +1,0 @@
-ip: "0.0.0.0"
-port: 8080
-bot_username: "your-bot-username"
-gitlab_instance: "gitlab.com"
-gitlab_access_token: "your-access-token"
-retry_amount: 3
-job_name: "your-job-name"
