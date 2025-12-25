@@ -6,7 +6,6 @@
 
 #include "Job.hpp"
 
-#include <expected>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
@@ -16,7 +15,7 @@ public:
 
     void remove_job(int pipeline_id);
 
-    [[nodiscard]] std::expected<std::reference_wrapper<Job>, std::string> get_job(int pipeline_id);
+    [[nodiscard]] std::optional<std::reference_wrapper<Job>> get_job(int pipeline_id);
 private:
     std::unordered_map<int, Job> jobs = {};
 };

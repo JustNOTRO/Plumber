@@ -4,14 +4,13 @@
 
 #pragma once
 
-#define BOT_MENTION_PREFIX "@"
-
 #include "httplib.h"
 #include "spdlog/spdlog.h"
 #include "../managers/JobManager.hpp"
 
 #include <nlohmann/json.hpp>
 
+constexpr std::string BOT_MENTION_PREFIX = "@";
 
 class Server final : public httplib::Server {
 public:
@@ -22,7 +21,7 @@ public:
 private:
     void retry_job(Job &job);
 
-    [[nodicard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
+    [[nodiscard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
     void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
@@ -32,15 +31,7 @@ private:
 
     void setup_gitlab_client();
 
-    template<typename T>
-    std::expected<T, std::string> get_node(const nlohmann::json &json, const std::string &name) {
-        if (!json.contains(name)) {
-            auto err = std::format("could not find {}", name);
-            return std::unexpected(err);
-        }
-
-        return json.at(name).get<T>();
-    }
+    void react_with_emoji(const Job &job, const std::string &emoji);
 
     std::string ip;
 

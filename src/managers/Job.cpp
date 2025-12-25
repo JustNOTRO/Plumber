@@ -43,3 +43,19 @@ const std::string& Job::get_status() const {
 void Job::set_status(const std::string &new_status) {
     this->status = new_status;
 }
+
+int Job::get_merge_request_id() const {
+    return merge_request_id;
+}
+
+void Job::set_merge_request_id(int merge_req_id) {
+    this->merge_request_id = merge_req_id;
+}
+
+int Job::get_comment_id() const {
+    return comment_id;
+}
+
+void Job::set_comment_id(int new_comment_id) {
+    this->comment_id = new_comment_id;
+}

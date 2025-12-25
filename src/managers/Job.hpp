@@ -28,6 +28,14 @@ public:
 
     void set_status(const std::string &new_status);
 
+    [[nodiscard]] int get_merge_request_id() const;
+
+    void set_merge_request_id(int merge_req_id);
+
+    [[nodiscard]] int get_comment_id() const;
+
+    void set_comment_id(int new_comment_id);
+
 private:
     int id;
 
@@ -38,4 +46,8 @@ private:
     int retry_amount;
 
     std::string status;
+
+    int merge_request_id = 0;
+
+    int comment_id = 0;
 };
