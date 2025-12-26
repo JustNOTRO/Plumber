@@ -235,6 +235,19 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     }
 }
 
+void Server::approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id) {
+    react_with_emoji(job, bot_username, get_env("JOB_SUCCESS_REACTION").value_or("white_check_mark"));
+
+    const int merge_request_id = job.get_merge_request_id();
+    const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/approve", job.get_project_id(), merge_request_id);
+
+    if (const httplib::Result res = gitlab_client.Post(path); res && res->status != HTTP_CREATED)
+        spdlog::error("failed to approve merge request {} with status {}", merge_request_id, res->status);
+
+    job_manager.remove_job(pipeline_id);
+    spdlog::info("Plumber check passed successfully approving MR with success!");
+}
+
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username) {
     if (const std::string build_name = req_body["build_name"].get<std::string>(); build_name != job_name)
         return;
@@ -269,13 +282,10 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
         return;
     }
 
-    if (job.get_retry_amount() >= required_retry_amount) {
-        spdlog::info("job retry_amount reached! terminating with success!");
-        react_with_emoji(job, bot_username, get_env("JOB_SUCCESS_REACTION").value_or("white_check_mark"));
-        job_manager.remove_job(pipeline_id);
-    } else {
+    if (job.get_retry_amount() >= required_retry_amount)
+        approve_merge_request(job, bot_username, pipeline_id);
+    else
         retry_job(job);
-    }
 }
 
 std::optional<nlohmann::json> Server::get_pipeline_jobs(int project_id, int pipeline_id) {
