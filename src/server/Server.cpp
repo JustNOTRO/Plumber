@@ -246,7 +246,7 @@ void Server::approve_merge_request(Job &job, const std::string &bot_username, co
 
     if (res && res->status == HTTP_CREATED)
         spdlog::info("Plumber check passed successfully approving MR with success!");
-    else if (res->status == 401)
+    else if (res->status == HTTP_UNAUTHORIZED)
         spdlog::info("Plumber check passed successfully! (MR already approved)");
     else
         spdlog::error("failed to approve merge request {} with status {}", merge_request_id, res->status);
