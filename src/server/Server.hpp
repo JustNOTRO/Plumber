@@ -23,15 +23,17 @@ private:
 
     [[nodiscard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
 
+    void delete_previous_bot_reactions(Job &job, const std::string &bot_username);
+
     void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
+    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username);
 
     [[nodiscard]] std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
 
     void setup_gitlab_client();
 
-    void react_with_emoji(const Job &job, const std::string &emoji);
+    void react_with_emoji(Job &job, const std::string &bot_username, const std::string &emoji);
 
     std::string ip;
 

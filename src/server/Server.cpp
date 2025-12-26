@@ -2,6 +2,7 @@
 #include "../managers/Job.hpp"
 
 constexpr int HTTP_CREATED = 201;
+constexpr int HTTP_DELETED = 204;
 
 std::string require_env(const char *name) {
     const char *v = std::getenv(name);
@@ -47,9 +48,8 @@ int require_retry_amount(const char *name) {
 
 std::optional<std::string> get_env(const char *name) {
     const char *v = std::getenv(name);
-    if (!v) {
+    if (!v)
         return std::nullopt;
-    }
 
     return std::make_optional(v);
 }
@@ -112,7 +112,7 @@ void Server::start() {
         const nlohmann::json req_body = nlohmann::json::parse(req.body);
 
         if (const std::string object_kind = req_body["object_kind"].get<std::string>(); object_kind == "build")
-            handle_job_webhook(req_body, job_name);
+            handle_job_webhook(req_body, job_name, bot_username);
         else if (object_kind == "note")
             handle_comment_webhook(req_body, bot_username, job_name);
         else
@@ -158,14 +158,36 @@ std::optional<std::reference_wrapper<Job>> Server::get_job_by_name(const std::st
     return std::nullopt;
 }
 
-void Server::react_with_emoji(const Job &job, const std::string &emoji) {
+void Server::delete_previous_bot_reactions(Job &job, const std::string &bot_username) {
     const int project_id = job.get_project_id();
     const int merge_req_id = job.get_merge_request_id();
     const int comment_id = job.get_comment_id();
 
-    spdlog::info("Project id: {}", project_id);
-    spdlog::info("Merge req: {}", merge_req_id);
-    spdlog::info("Comment {}", comment_id);
+    const httplib::Result res = gitlab_client.Get(std::format("/api/v4/projects/{}/merge_requests/{}/notes/{}/award_emoji", project_id, merge_req_id, comment_id));
+    const nlohmann::json json = nlohmann::json::parse(res->body);
+
+    if (json.empty())
+        return;
+
+    for (const nlohmann::json &node : json) {
+        if (const std::string username = node["user"]["username"].get<std::string>(); username != bot_username)
+            continue;
+
+        const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/notes/{}/award_emoji/{}", project_id, merge_req_id, comment_id, node["id"].get<int>());
+        const httplib::Result delete_res = gitlab_client.Delete(path);
+        const std::string emoji = node["name"].get<std::string>();
+
+        if (delete_res->status != HTTP_DELETED)
+            spdlog::error("failed to delete reaction {} for {} with status {}", emoji, job.get_name(), delete_res->status);
+    }
+}
+
+void Server::react_with_emoji(Job &job, const std::string &bot_username, const std::string &emoji) {
+    delete_previous_bot_reactions(job, bot_username);
+
+    const int project_id = job.get_project_id();
+    const int merge_req_id = job.get_merge_request_id();
+    const int comment_id = job.get_comment_id();
 
     const httplib::Result res = gitlab_client.Post(
         std::format("/api/v4/projects/{}/merge_requests/{}/notes/{}/award_emoji?name={}",
@@ -175,15 +197,13 @@ void Server::react_with_emoji(const Job &job, const std::string &emoji) {
         emoji
     ));
 
-    if (res && res->status == HTTP_CREATED)
-        spdlog::info("successfully reacted with {} emoji to comment {} for failed job {}", emoji, comment_id, job.get_name());
-    else
-        spdlog::error("failed to react {} emoji to comment {} with status {}", emoji, comment_id, res ? res->status : 0);
+    if (res && res->status != HTTP_CREATED)
+        spdlog::error("failed to react {} emoji to comment {} with status {}", emoji, comment_id, res->status);
 }
 
 void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
     const nlohmann::json object_attributes = req_body["object_attributes"].get<nlohmann::json>();
-    const nlohmann::json noteable_type = object_attributes["noteable_type"].get<std::string>();
+    const std::string noteable_type = object_attributes["noteable_type"].get<std::string>();
 
     if (noteable_type != "MergeRequest")
         return;
@@ -207,15 +227,15 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     job.set_name(job_name);
 
     if (job.get_status() == "success") {
-        react_with_emoji(job, get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket"));
+        react_with_emoji(job, bot_username, get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket"));
         retry_job(job);
     } else {
         spdlog::error("job {} is not in success state, cannot retry.", job_name);
-        react_with_emoji(job, get_env("RETRY_REQUEST_DENIED_REACTION").value_or("thumbsdown"));
+        react_with_emoji(job, bot_username, get_env("RETRY_REQUEST_DENIED_REACTION").value_or("thumbsdown"));
     }
 }
 
-void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name) {
+void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username) {
     if (const std::string build_name = req_body["build_name"].get<std::string>(); build_name != job_name)
         return;
 
@@ -236,7 +256,7 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
     if (job_status == "failed") {
         job_manager.remove_job(pipeline_id);
         spdlog::error("job {} failed! terminating..", job_name);
-        react_with_emoji(job, get_env("JOB_FAILED_REACTION").value_or("x"));
+        react_with_emoji(job, bot_username, get_env("JOB_FAILED_REACTION").value_or("x"));
         return;
     }
 
@@ -251,7 +271,7 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
 
     if (job.get_retry_amount() >= required_retry_amount) {
         spdlog::info("job retry_amount reached! terminating with success!");
-        react_with_emoji(job, get_env("JOB_SUCCESS_REACTION").value_or("white_check_mark"));
+        react_with_emoji(job, bot_username, get_env("JOB_SUCCESS_REACTION").value_or("white_check_mark"));
         job_manager.remove_job(pipeline_id);
     } else {
         retry_job(job);
@@ -260,11 +280,10 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
 
 std::optional<nlohmann::json> Server::get_pipeline_jobs(int project_id, int pipeline_id) {
     const std::string path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
-    httplib::Result jobs = this->gitlab_client.Get(path);
+    const httplib::Result jobs = this->gitlab_client.Get(path);
 
     if (!nlohmann::json::accept(jobs->body))
         return std::nullopt;
 
-    const nlohmann::json jobs_json = nlohmann::json::parse(jobs->body);
-    return std::make_optional(jobs_json);
+    return std::make_optional(nlohmann::json::parse(jobs->body));
 }
