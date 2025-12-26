@@ -3,6 +3,8 @@
 
 constexpr int HTTP_CREATED = 201;
 constexpr int HTTP_DELETED = 204;
+constexpr int HTTP_UNAUTHORIZED = 401;
+constexpr int HTTP_NOT_FOUND = 404;
 
 std::string require_env(const char *name) {
     const char *v = std::getenv(name);
@@ -182,9 +184,7 @@ void Server::delete_previous_bot_reactions(Job &job, const std::string &bot_user
     }
 }
 
-void Server::react_with_emoji(Job &job, const std::string &bot_username, const std::string &emoji) {
-    delete_previous_bot_reactions(job, bot_username);
-
+void Server::react_with_emoji(Job &job, const std::string &emoji) {
     const int project_id = job.get_project_id();
     const int merge_req_id = job.get_merge_request_id();
     const int comment_id = job.get_comment_id();
@@ -227,25 +227,51 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     job.set_name(job_name);
 
     if (job.get_status() == "success") {
-        react_with_emoji(job, bot_username, get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket"));
+        react_with_emoji(job, get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket"));
         retry_job(job);
     } else {
         spdlog::error("job {} is not in success state, cannot retry.", job_name);
-        react_with_emoji(job, bot_username, get_env("RETRY_REQUEST_DENIED_REACTION").value_or("thumbsdown"));
+        react_with_emoji(job, get_env("RETRY_REQUEST_DENIED_REACTION").value_or("thumbsdown"));
     }
 }
 
 void Server::approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id) {
-    react_with_emoji(job, bot_username, get_env("JOB_SUCCESS_REACTION").value_or("white_check_mark"));
+    delete_previous_bot_reactions(job, bot_username);
+    react_with_emoji(job, get_env("JOB_SUCCESS_REACTION").value_or("white_check_mark"));
 
     const int merge_request_id = job.get_merge_request_id();
     const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/approve", job.get_project_id(), merge_request_id);
 
-    if (const httplib::Result res = gitlab_client.Post(path); res && res->status != HTTP_CREATED)
+    const httplib::Result res = gitlab_client.Post(path);
+
+    if (res && res->status == HTTP_CREATED)
+        spdlog::info("Plumber check passed successfully approving MR with success!");
+    else if (res->status == 401)
+        spdlog::info("Plumber check passed successfully! (MR already approved)");
+    else
         spdlog::error("failed to approve merge request {} with status {}", merge_request_id, res->status);
 
     job_manager.remove_job(pipeline_id);
-    spdlog::info("Plumber check passed successfully approving MR with success!");
+}
+
+void Server::unapprove_merge_request(Job &job, const std::string &bot_username, const int pipeline_id) {
+    spdlog::error("job {} failed! terminating..", job.get_name());
+    delete_previous_bot_reactions(job, bot_username);
+    react_with_emoji(job, get_env("JOB_FAILED_REACTION").value_or("x"));
+
+    const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/approve", job.get_project_id(), job.get_merge_request_id());
+    const httplib::Result res = gitlab_client.Post(path);
+    if (res && res->status == HTTP_NOT_FOUND) {
+        spdlog::error("merge request is not approved");
+        return;
+    }
+
+    if (res && res->status == HTTP_CREATED)
+        spdlog::error("Plumber check failed unapproving MR with failure!");
+    else
+        spdlog::error("failed to unapprove merge request {} with status {}", job.get_merge_request_id(), res->status);
+
+    job_manager.remove_job(pipeline_id);
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username) {
@@ -267,9 +293,7 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
     job.set_status(job_status);
 
     if (job_status == "failed") {
-        job_manager.remove_job(pipeline_id);
-        spdlog::error("job {} failed! terminating..", job_name);
-        react_with_emoji(job, bot_username, get_env("JOB_FAILED_REACTION").value_or("x"));
+        unapprove_merge_request(job, bot_username, pipeline_id);
         return;
     }
 
