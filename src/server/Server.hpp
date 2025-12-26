@@ -27,8 +27,6 @@ private:
 
     void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    void approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
-
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username);
 
     [[nodiscard]] std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
