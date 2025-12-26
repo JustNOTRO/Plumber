@@ -242,11 +242,9 @@ void Server::approve_merge_request(Job &job, const std::string &bot_username, co
     const int merge_request_id = job.get_merge_request_id();
     const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/approve", job.get_project_id(), merge_request_id);
 
-    const httplib::Result res = gitlab_client.Post(path);
-
-    if (res && res->status == HTTP_CREATED)
+    if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
         spdlog::info("Plumber check passed successfully approving MR with success!");
-    else if (res->status == HTTP_UNAUTHORIZED)
+    else if (res && res->status == HTTP_UNAUTHORIZED)
         spdlog::info("Plumber check passed successfully! (MR already approved)");
     else
         spdlog::error("failed to approve merge request {} with status {}", merge_request_id, res->status);
@@ -259,15 +257,12 @@ void Server::unapprove_merge_request(Job &job, const std::string &bot_username, 
     delete_previous_bot_reactions(job, bot_username);
     react_with_emoji(job, get_env("JOB_FAILED_REACTION").value_or("x"));
 
-    const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/approve", job.get_project_id(), job.get_merge_request_id());
-    const httplib::Result res = gitlab_client.Post(path);
-    if (res && res->status == HTTP_NOT_FOUND) {
-        spdlog::error("merge request is not approved");
-        return;
-    }
+    const std::string path = std::format("/api/v4/projects/{}/merge_requests/{}/unapprove", job.get_project_id(), job.get_merge_request_id());
 
-    if (res && res->status == HTTP_CREATED)
+    if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
         spdlog::error("Plumber check failed unapproving MR with failure!");
+    else if (res && res->status == HTTP_NOT_FOUND)
+        spdlog::info("Plumber check failed! (MR is already not approved)");
     else
         spdlog::error("failed to unapprove merge request {} with status {}", job.get_merge_request_id(), res->status);
 
