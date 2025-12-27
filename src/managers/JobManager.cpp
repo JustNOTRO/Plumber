@@ -12,7 +12,7 @@ Job JobManager::create_job(const JobInfo &job_info) {
     const int id = job_info.id;
     const int project_id = job_info.project_id;
 
-    return {id, project_id};
+    return Job{id, project_id};
 }
 
 void JobManager::add_job(int pipeline_id, Job &job) {
@@ -24,8 +24,9 @@ void JobManager::remove_job(int pipeline_id) {
 }
 
 std::optional<std::reference_wrapper<Job>> JobManager::get_job(int pipeline_id) {
-    if (!jobs.contains(pipeline_id))
+    const auto it = jobs.find(pipeline_id);
+    if (it == jobs.end())
         return std::nullopt;
 
-    return std::make_optional(std::ref(jobs.at(pipeline_id)));
+    return std::ref(it->second);
 }

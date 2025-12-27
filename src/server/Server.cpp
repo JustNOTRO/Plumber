@@ -187,17 +187,15 @@ std::expected<Job, std::string> Server::create_job(const nlohmann::json &pipelin
     return std::unexpected("job not found");
 }
 
-void Server::retry_job(Job &job) {
+void Server::retry_job(const Job &job) {
     const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
-    if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
-        spdlog::info("successfully retried job {} for {}x times", job.get_name(), job.get_retry_amount());
-    else
-        spdlog::error("failed to retry job {} with status {}", job.get_name(), res->status);
+    if (const httplib::Result res = gitlab_client.Post(path); res && res->status != HTTP_CREATED)
+        spdlog::error("request to retry job {} failed with status {}", job.get_name(), res->status);
 }
 
 void Server::retry_job(JobInfo &job_info) {
     const nlohmann::json pipeline_jobs = get_pipeline_jobs(job_info.project_id, job_info.pipeline_id);
-    auto job_expected = create_job(pipeline_jobs, job_info);
+    std::expected<Job, std::string> job_expected = create_job(pipeline_jobs, job_info);
 
     if (!job_expected) {
         spdlog::error("failed: {}", job_expected.error());
@@ -248,7 +246,7 @@ void Server::approve_merge_request(Job &job, const std::string &bot_username, co
 
     if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
         spdlog::info("Plumber check passed successfully approving MR with success!");
-    else if (res && res->status == HTTP_UNAUTHORIZED)
+    else if (res && res->status == HTTP_UNAUTHORIZED) // for some reason Gitlab returns HTTP UNAUTHORIZED when a merge request is already approved
         spdlog::info("Plumber check passed successfully! (MR already approved)");
     else
         spdlog::error("failed to approve merge request {} with status {}", merge_request_id, res->status);
@@ -266,7 +264,7 @@ void Server::unapprove_merge_request(Job &job, const std::string &bot_username, 
     if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
         spdlog::error("Plumber check failed unapproving MR with failure!");
     else if (res && res->status == HTTP_NOT_FOUND)
-        spdlog::info("Plumber check failed! (MR is already not approved)");
+        spdlog::error("Plumber check failed! (MR is already not approved)");
     else
         spdlog::error("failed to unapprove merge request {} with status {}", job.get_merge_request_id(), res->status);
 

@@ -29,9 +29,7 @@ public:
     void start();
 
 private:
-    void retry_job(Job &job);
-
-    [[nodiscard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
+    void retry_job(const Job &job);
 
     void delete_previous_bot_reactions(Job &job, const std::string &bot_username);
 
@@ -39,7 +37,7 @@ private:
 
     void approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
 
-    void unapprove_merge_request(Job &job, const std::string &bot_username, int pipeline_id);
+    void unapprove_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
 
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username);
 
@@ -49,7 +47,7 @@ private:
 
     void react_with_emoji(const Job &job, const std::string &emoji);
 
-    std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
+    [[nodiscard]] std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
 
     void retry_job(JobInfo &job_info);
 

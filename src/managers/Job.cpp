@@ -20,7 +20,7 @@ int Job::get_id() const {
     return id;
 }
 
-void Job::set_id(int new_id) {
+void Job::set_id(const int new_id) {
     this->id = new_id;
 }
 
