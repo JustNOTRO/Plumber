@@ -8,9 +8,19 @@
 #include "spdlog/spdlog.h"
 #include "../managers/JobManager.hpp"
 
+#include <expected>
 #include <nlohmann/json.hpp>
 
 constexpr std::string BOT_MENTION_PREFIX = "@";
+
+struct JobInfo {
+    std::string name;
+    int id{};
+    int project_id{};
+    int merge_req_id{};
+    int comment_id{};
+    int pipeline_id{};
+};
 
 class Server final : public httplib::Server {
 public:
@@ -33,11 +43,15 @@ private:
 
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username);
 
-    [[nodiscard]] std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
+    [[nodiscard]] nlohmann::json get_pipeline_jobs(int project_id, int pipeline_id);
 
     void setup_gitlab_client();
 
-    void react_with_emoji(Job &job, const std::string &emoji);
+    void react_with_emoji(const Job &job, const std::string &emoji);
+
+    std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
+
+    void retry_job(JobInfo &job_info);
 
     std::string ip;
 

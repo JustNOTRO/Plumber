@@ -127,39 +127,6 @@ void Server::start() {
     listen_after_bind();
 }
 
-void Server::retry_job(Job &job) {
-    job.increase_retry_amount();
-
-    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
-    if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
-        spdlog::info("successfully retried job {} for {}x times", job.get_name(), job.get_retry_amount());
-    else
-        spdlog::error("failed to retry job {} with status {}", job.get_name(), res->status);
-}
-
-std::optional<std::reference_wrapper<Job>> Server::get_job_by_name(const std::string &job_name, const nlohmann::json &req_body) {
-    const int project_id = req_body["project_id"].get<int>();
-    const nlohmann::json merge_request = req_body["merge_request"].get<nlohmann::json>();
-    const int pipeline_id = merge_request["head_pipeline_id"].get<int>();
-
-    const std::optional<nlohmann::json> jobs_opt = get_pipeline_jobs(project_id, pipeline_id);
-    if (!jobs_opt)
-        return std::nullopt;
-
-    for (const nlohmann::json &jobs = jobs_opt.value(); const nlohmann::json &other_job: jobs) {
-        if (other_job.at("name") != job_name)
-            continue;
-
-        const std::string job_status = other_job["status"].get<std::string>();
-
-        Job &job = job_manager.create_job(pipeline_id, other_job);
-        job.set_status(job_status);
-        return job;
-    }
-
-    return std::nullopt;
-}
-
 void Server::delete_previous_bot_reactions(Job &job, const std::string &bot_username) {
     const int project_id = job.get_project_id();
     const int merge_req_id = job.get_merge_request_id();
@@ -184,7 +151,7 @@ void Server::delete_previous_bot_reactions(Job &job, const std::string &bot_user
     }
 }
 
-void Server::react_with_emoji(Job &job, const std::string &emoji) {
+void Server::react_with_emoji(const Job &job, const std::string &emoji) {
     const int project_id = job.get_project_id();
     const int merge_req_id = job.get_merge_request_id();
     const int comment_id = job.get_comment_id();
@@ -201,6 +168,56 @@ void Server::react_with_emoji(Job &job, const std::string &emoji) {
         spdlog::error("failed to react {} emoji to comment {} with status {}", emoji, comment_id, res->status);
 }
 
+std::expected<Job, std::string> Server::create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info) {
+    for (const nlohmann::json &node : pipeline_jobs) {
+        if (node["name"].get<std::string>() != job_info.name)
+            continue;
+
+        const auto status = node["status"].get<std::string>();
+        job_info.id = node["id"].get<int>();
+
+        Job job = job_manager.create_job(job_info);
+        job.set_merge_request_id(job_info.merge_req_id);
+        job.set_comment_id(job_info.comment_id);
+        job.set_name(job_info.name);
+        job.set_status(status);
+        return job;
+    }
+
+    return std::unexpected("job not found");
+}
+
+void Server::retry_job(Job &job) {
+    const std::string path = std::format("/api/v4/projects/{}/jobs/{}/retry", job.get_project_id(), job.get_id());
+    if (const httplib::Result res = gitlab_client.Post(path); res && res->status == HTTP_CREATED)
+        spdlog::info("successfully retried job {} for {}x times", job.get_name(), job.get_retry_amount());
+    else
+        spdlog::error("failed to retry job {} with status {}", job.get_name(), res->status);
+}
+
+void Server::retry_job(JobInfo &job_info) {
+    const nlohmann::json pipeline_jobs = get_pipeline_jobs(job_info.project_id, job_info.pipeline_id);
+    auto job_expected = create_job(pipeline_jobs, job_info);
+
+    if (!job_expected) {
+        spdlog::error("failed: {}", job_expected.error());
+        return;
+    }
+
+    Job &job = job_expected.value();
+    if (job.get_status() != "success") {
+        spdlog::error("job {} is not in success state, cannot retry.", job_info.name);
+        react_with_emoji(job, get_env("RETRY_REQUEST_DENIED_REACTION").value_or("thumbsdown"));
+        return;
+    }
+
+    react_with_emoji(job, get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket"));
+    job.increase_retry_amount();
+
+    job_manager.add_job(job_info.pipeline_id, job);
+    retry_job(job);
+}
+
 void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
     const nlohmann::json object_attributes = req_body["object_attributes"].get<nlohmann::json>();
     const std::string noteable_type = object_attributes["noteable_type"].get<std::string>();
@@ -212,27 +229,14 @@ void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::s
     if (!note.contains(BOT_MENTION_PREFIX + bot_username))
         return;
 
-    const std::optional<std::reference_wrapper<Job>> job_opt = get_job_by_name(job_name, req_body);
-    if (!job_opt) {
-        spdlog::error("requested job {} not found.", job_name);
-        return;
-    }
+    JobInfo job_info;
+    job_info.name = job_name;
+    job_info.merge_req_id = req_body["merge_request"]["iid"].get<int>();
+    job_info.project_id = req_body["project_id"].get<int>();
+    job_info.comment_id = object_attributes["id"].get<int>();
+    job_info.pipeline_id = req_body["merge_request"]["head_pipeline_id"].get<int>();
 
-    const int merge_req_id = req_body["merge_request"]["iid"].get<int>();
-    const int comment_id = object_attributes["id"].get<int>();
-
-    Job &job = job_opt.value();
-    job.set_merge_request_id(merge_req_id);
-    job.set_comment_id(comment_id);
-    job.set_name(job_name);
-
-    if (job.get_status() == "success") {
-        react_with_emoji(job, get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket"));
-        retry_job(job);
-    } else {
-        spdlog::error("job {} is not in success state, cannot retry.", job_name);
-        react_with_emoji(job, get_env("RETRY_REQUEST_DENIED_REACTION").value_or("thumbsdown"));
-    }
+    retry_job(job_info);
 }
 
 void Server::approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id) {
@@ -283,7 +287,7 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
         return;
     }
 
-    Job &job = job_opt.value();
+    Job &job = job_opt.value().get();
     job.set_id(job_id);
     job.set_status(job_status);
 
@@ -301,18 +305,17 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
         return;
     }
 
-    if (job.get_retry_amount() >= required_retry_amount)
+    if (job.get_retry_amount() >= required_retry_amount) {
         approve_merge_request(job, bot_username, pipeline_id);
-    else
+    } else {
+        job.increase_retry_amount();
         retry_job(job);
+    }
 }
 
-std::optional<nlohmann::json> Server::get_pipeline_jobs(int project_id, int pipeline_id) {
+nlohmann::json Server::get_pipeline_jobs(int project_id, int pipeline_id) {
     const std::string path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
-    const httplib::Result jobs = this->gitlab_client.Get(path);
+    const httplib::Result jobs = gitlab_client.Get(path);
 
-    if (!nlohmann::json::accept(jobs->body))
-        return std::nullopt;
-
-    return std::make_optional(nlohmann::json::parse(jobs->body));
+    return nlohmann::json::parse(jobs->body);
 }
