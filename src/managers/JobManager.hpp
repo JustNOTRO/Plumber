@@ -9,9 +9,14 @@
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
+struct JobInfo;
+
 class JobManager {
+
 public:
-    [[nodiscard]] Job& create_job(int pipeline_id, const nlohmann::json &job_body);
+    [[nodiscard]] Job create_job(const JobInfo &job_info);
+
+    void add_job(int pipeline_id, Job &job);
 
     void remove_job(int pipeline_id);
 

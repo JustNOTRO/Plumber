@@ -8,9 +8,19 @@
 #include "spdlog/spdlog.h"
 #include "../managers/JobManager.hpp"
 
+#include <expected>
 #include <nlohmann/json.hpp>
 
 constexpr std::string BOT_MENTION_PREFIX = "@";
+
+struct JobInfo {
+    std::string name;
+    int id{};
+    int project_id{};
+    int merge_req_id{};
+    int comment_id{};
+    int pipeline_id{};
+};
 
 class Server final : public httplib::Server {
 public:
@@ -19,19 +29,27 @@ public:
     void start();
 
 private:
-    void retry_job(Job &job);
+    void retry_job(const Job &job);
 
-    [[nodiscard]] std::optional<std::reference_wrapper<Job>> get_job_by_name(const std::string &job_name, const nlohmann::json &req_body);
+    void delete_previous_bot_reactions(Job &job, const std::string &bot_username);
 
     void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
 
-    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name);
+    void approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
 
-    [[nodiscard]] std::optional<nlohmann::json> get_pipeline_jobs(int project_id, int pipeline_id);
+    void unapprove_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
+
+    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username);
+
+    [[nodiscard]] nlohmann::json get_pipeline_jobs(int project_id, int pipeline_id);
 
     void setup_gitlab_client();
 
     void react_with_emoji(const Job &job, const std::string &emoji);
+
+    [[nodiscard]] std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
+
+    void retry_job(JobInfo &job_info);
 
     std::string ip;
 
