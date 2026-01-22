@@ -1,17 +1,20 @@
 //
-// Created by Eilon Hafzadi on 30/11/2025.
+// Created by Eilon Hafzadi on 10/01/2026.
 //
 
 #pragma once
 
-#include "httplib.h"
-#include "spdlog/spdlog.h"
+#include <expected>
+#include <httplib.h>
+#include <string>
+
 #include "../managers/JobManager.hpp"
 
-#include <expected>
-#include <nlohmann/json.hpp>
-
 constexpr std::string BOT_MENTION_PREFIX = "@";
+constexpr int HTTP_CREATED = 201;
+constexpr int HTTP_DELETED = 204;
+constexpr int HTTP_UNAUTHORIZED = 401;
+constexpr int HTTP_NOT_FOUND = 404;
 
 struct JobInfo {
     std::string name;
@@ -22,34 +25,45 @@ struct JobInfo {
     int pipeline_id{};
 };
 
-class Server final : public httplib::Server {
+class Server {
 public:
-    Server();
+    using Handler = httplib::Server::Handler;
+    using HandlerWithContentReader = httplib::Server::HandlerWithContentReader;
+
+    Server(std::string ip, std::uint16_t port, const std::string &gitlab_instance);
+
+    virtual ~Server() = default;
 
     void start();
 
-private:
-    void retry_job(const Job &job);
+    virtual bool bind_to_port(const std::string &ip, std::uint16_t port) = 0;
 
-    void delete_previous_bot_reactions(Job &job, const std::string &bot_username);
+    virtual bool listen_after_bind() = 0;
 
-    void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name);
+    virtual void listen(std::string &ip, std::uint16_t port) = 0;
 
-    void approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
+    virtual httplib::Server &Get(const std::string &pattern, Handler handler) = 0;
 
-    void unapprove_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
+    virtual httplib::Server &Post(const std::string &pattern, Handler handler) = 0;
 
-    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username);
+    virtual httplib::Server &Post(const std::string &pattern, HandlerWithContentReader handler) = 0;
 
-    [[nodiscard]] nlohmann::json get_pipeline_jobs(int project_id, int pipeline_id);
+    virtual httplib::Server &Put(const std::string &pattern, Handler handler) = 0;
 
-    void setup_gitlab_client();
+    virtual httplib::Server &Put(const std::string &pattern, HandlerWithContentReader handler) = 0;
 
-    void react_with_emoji(const Job &job, const std::string &emoji);
+    virtual httplib::Server &Patch(const std::string &pattern, Handler handler) = 0;
 
-    [[nodiscard]] std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
+    virtual httplib::Server &Patch(const std::string &pattern, HandlerWithContentReader handler) = 0;
 
-    void retry_job(JobInfo &job_info);
+    virtual httplib::Server &Delete(const std::string &pattern, Handler handler) = 0;
+
+    virtual httplib::Server &Delete(const std::string &pattern, HandlerWithContentReader handler) = 0;
+
+    virtual httplib::Server &Options(const std::string &pattern, Handler handler) = 0;
+
+protected:
+    virtual void setup_gitlab_client() = 0;
 
     std::string ip;
 
@@ -58,4 +72,26 @@ private:
     httplib::Client gitlab_client;
 
     JobManager job_manager;
+
+    void retry_job(const Job &job);
+
+    void delete_previous_bot_reactions(Job &job, const std::string &bot_username);
+
+    void handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username,
+                                const std::string &job_name);
+
+    void approve_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
+
+    void unapprove_merge_request(Job &job, const std::string &bot_username, const int pipeline_id);
+
+    void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name,
+                            const std::string &bot_username);
+
+    [[nodiscard]] nlohmann::json get_pipeline_jobs(int project_id, int pipeline_id);
+
+    void react_with_emoji(const Job &job, const std::string &emoji);
+
+    [[nodiscard]] std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
+
+    void retry_job(JobInfo &job_info);
 };
