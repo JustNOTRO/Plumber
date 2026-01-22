@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Job.hpp"
+#include "../server/Job.hpp"
 
 #include <unordered_map>
 #include <nlohmann/json.hpp>

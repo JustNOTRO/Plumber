@@ -3,8 +3,8 @@
 //
 
 #include "JobManager.hpp"
-#include "Job.hpp"
-#include "../server/Server.hpp"
+#include "../server/Job.hpp"
+#include "../server/http/HttpServer.hpp"
 
 struct JobInfo;
 
