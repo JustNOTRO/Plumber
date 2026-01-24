@@ -25,7 +25,7 @@ struct JobInfo {
     int pipeline_id{};
 };
 
-class Server {
+class Server : public std::enable_shared_from_this<Server> {
 public:
     using Handler = httplib::Server::Handler;
     using HandlerWithContentReader = httplib::Server::HandlerWithContentReader;
@@ -35,6 +35,10 @@ public:
     virtual ~Server() = default;
 
     void start();
+
+    virtual void stop() = 0;
+
+    void restart();
 
     virtual bool bind_to_port(const std::string &ip, std::uint16_t port) = 0;
 
@@ -61,8 +65,6 @@ public:
     virtual httplib::Server &Options(const std::string &pattern, Handler handler) = 0;
 
 protected:
-    virtual void setup_gitlab_client() = 0;
-
     std::string ip;
 
     std::uint16_t port;
@@ -92,4 +94,7 @@ protected:
     [[nodiscard]] std::expected<Job, std::string> create_job(const nlohmann::json &pipeline_jobs, JobInfo &job_info);
 
     void retry_job(JobInfo &job_info);
+
+private:
+    void setup_gitlab_client();
 };

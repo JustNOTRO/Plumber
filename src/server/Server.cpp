@@ -11,7 +11,38 @@
 Server::Server(std::string ip, const std::uint16_t port, const std::string &gitlab_instance)
     : ip(std::move(ip)),
       port(port),
-      gitlab_client(gitlab_instance) {}
+      gitlab_client(gitlab_instance) {
+}
+
+void Server::setup_gitlab_client() {
+    std::string gitlab_access_token = ServerUtils::require_env("GITLAB_ACCESS_TOKEN");
+
+    gitlab_client.set_default_headers({{"PRIVATE-TOKEN", gitlab_access_token}});
+    gitlab_client.set_error_logger([](const httplib::Error &err, const httplib::Request *req) {
+        if (req)
+            spdlog::error("{} {}", req->method, req->path);
+
+        spdlog::error("failed: {}", httplib::to_string(err));
+
+        switch (err) {
+            case httplib::Error::Connection:
+                spdlog::error("(verify server is running and reachable)");
+                break;
+            case httplib::Error::SSLConnection:
+                spdlog::error(" (check SSL certificate and TLS configuration)");
+                break;
+            case httplib::Error::ConnectionTimeout:
+                spdlog::error(" (increase timeout or check network latency)");
+                break;
+            case httplib::Error::Read:
+                spdlog::error(" (server may have closed connection prematurely)");
+                break;
+            default:
+                break;
+        }
+    });
+}
+
 
 void Server::start() {
     if (!bind_to_port(ip, port)) {
@@ -51,6 +82,16 @@ void Server::start() {
 
     spdlog::info("Server is now running on: {}:{}", ip, port);
     listen_after_bind();
+}
+
+void Server::restart() {
+    // restart logic here..
+    spdlog::info("Restarting server..");
+
+    // if the server is being runned in pterodactyl,
+    // restart the server using pterodactyl restart HTTP endpoint
+    // otherwise, do nothing for now? until i figure it out
+    stop();
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name,
@@ -251,6 +292,11 @@ void Server::unapprove_merge_request(Job &job, const std::string &bot_username, 
 nlohmann::json Server::get_pipeline_jobs(int project_id, int pipeline_id) {
     const std::string path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
     const httplib::Result jobs = gitlab_client.Get(path);
+
+    if (!jobs) {
+        spdlog::error("failed to get pipeline jobs with status {}", jobs->status);
+        return nlohmann::json::array();
+    }
 
     return nlohmann::json::parse(jobs->body);
 }
