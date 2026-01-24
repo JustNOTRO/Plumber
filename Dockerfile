@@ -9,6 +9,7 @@ RUN apk add --no-cache \
 
 COPY src /usr/src/Plumber/src
 COPY CMakeLists.txt /usr/src/Plumber/CMakeLists.txt
+COPY third_party /usr/src/Plumber/third_party
 
 WORKDIR /usr/src/Plumber
 
