@@ -14,14 +14,22 @@ Server::Server(std::string ip, const std::uint16_t port, const std::string &gitl
       gitlab_client(gitlab_instance) {}
 
 void Server::start() {
-    // if (!bind_to_port(ip, port)) {
-    //     spdlog::error("failed to bind address {} to port {}.", ip, port);
-    //     std::exit(1);
-    // }
+    if (!bind_to_port(ip, port)) {
+        spdlog::error("failed to bind address {} to port {}.", ip, port);
+        std::exit(1);
+    }
 
     setup_gitlab_client();
 
-    Post("/webhook", [this](const httplib::Request &req, httplib::Response &) {
+    Post("/webhook", [this](const httplib::Request &req, httplib::Response &response) {
+        const char *x_gitlab_token = std::getenv("X_GITLAB_TOKEN");
+
+        if (x_gitlab_token && req.get_header_value("X-Gitlab-Token") != x_gitlab_token) {
+            response.status = 401;
+            response.body = "Unauthorized";
+            return;
+        }
+
         if (!nlohmann::json::accept(req.body)) {
             spdlog::error("failed to parse request body.");
             return;
@@ -37,12 +45,12 @@ void Server::start() {
             handle_comment_webhook(req_body, bot_username, job_name);
         else
             spdlog::error("unsupported object kind: {}", object_kind);
+
+        response.status = 200;
     });
 
     spdlog::info("Server is now running on: {}:{}", ip, port);
-
-    listen(ip, port);
-    spdlog::info("Server error: {}", errno);
+    listen_after_bind();
 }
 
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name,

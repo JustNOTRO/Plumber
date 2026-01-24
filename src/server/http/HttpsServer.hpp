@@ -20,13 +20,6 @@ public:
         return server.listen_after_bind();
     }
 
-    void listen(std::string &ip, std::uint16_t port) override {
-        if (!server.listen(ip, port)) {
-            spdlog::error("failed to listen on address {}:{}.", ip, port);
-            std::exit(1);
-        }
-    }
-
     httplib::Server &Get(const std::string &pattern, const Handler handler) override {
         return server.Get(pattern, handler);
     }

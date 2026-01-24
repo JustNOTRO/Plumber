@@ -24,10 +24,6 @@ public:
         return server.listen_after_bind();
     }
 
-    void listen(std::string &ip, std::uint16_t port) override {
-        server.listen(ip, port);
-    }
-
     httplib::Server &Get(const std::string &pattern, const Handler handler) override {
         return server.Get(pattern, handler);
     }

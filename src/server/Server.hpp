@@ -40,8 +40,6 @@ public:
 
     virtual bool listen_after_bind() = 0;
 
-    virtual void listen(std::string &ip, std::uint16_t port) = 0;
-
     virtual httplib::Server &Get(const std::string &pattern, Handler handler) = 0;
 
     virtual httplib::Server &Post(const std::string &pattern, Handler handler) = 0;
