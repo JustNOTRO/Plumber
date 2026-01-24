@@ -4,7 +4,7 @@
 
 #include "JobManager.hpp"
 #include "../server/Job.hpp"
-#include "../server/http/HttpServer.hpp"
+#include "../server/wrapper/HttpServer.hpp"
 
 struct JobInfo;
 
