@@ -10,7 +10,6 @@
 #include <fstream>
 
 bool use_ssl(const char* cert, const char* cert_key) {
-
     if (!cert || !cert_key)
         return false;
 
