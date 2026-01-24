@@ -1,20 +1,20 @@
 //
-// Created by Eilon Hafzadi on 30/11/2025.
+// Created by Eilon Hafzadi on 22/01/2026.
 //
 
 #pragma once
 
-#include "httplib.h"
-#include "spdlog/spdlog.h"
-
-#include <expected>
-#include <nlohmann/json.hpp>
-
 #include "../Server.hpp"
 
-class HttpServer final : public Server {
+class HttpsServer final : public Server {
 public:
-    HttpServer(const std::string &ip, const std::uint16_t port, const std::string &gitlab_instance) : Server(ip, port, gitlab_instance) {}
+    HttpsServer(const std::string &ip, const std::uint16_t port, const std::string &gitlab_instance, const std::string &certificate, const std::string &cert_key)
+    : Server(ip, port, gitlab_instance), server(certificate.c_str(), cert_key.c_str()) {}
+
+
+    void stop() override {
+        server.stop();
+    }
 
     bool bind_to_port(const std::string &ip, const std::uint16_t port) override {
         return server.bind_to_port(ip, port);
@@ -64,9 +64,6 @@ public:
         return server.Options(pattern, handler);
     }
 
-protected:
-    void setup_gitlab_client() override;
-
 private:
-    httplib::Server server;
+    httplib::SSLServer server;
 };
