@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <string>
+#include <cstdint>
 
 class ServerUtils {
     public:
