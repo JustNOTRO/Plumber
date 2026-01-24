@@ -10,7 +10,7 @@
 #include <fstream>
 
 bool use_ssl(const char* cert, const char* cert_key) {
-    if (!cert || !cert_key)
+    if (cert == nullptr || cert_key == nullptr)
         return false;
 
     const std::ifstream cert_file(cert);
