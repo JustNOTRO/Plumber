@@ -11,5 +11,5 @@ class ServerFactory {
 public:
     ServerFactory() = delete;
 
-    static std::unique_ptr<Server> create(const std::string &ip, std::uint16_t port, const std::string &gitlab_instance);
+    static std::shared_ptr<Server> create(const std::string &ip, std::uint16_t port, const std::string &gitlab_instance);
 };
