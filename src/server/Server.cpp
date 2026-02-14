@@ -80,6 +80,11 @@ void Server::start() {
         response.status = 200;
     });
 
+    Get("/metrics", [](const httplib::Request &, httplib::Response &response) {
+        response.status = 200;
+        response.body = "OK";
+    });
+
     spdlog::info("Server is now running on: {}:{}", ip, port);
     listen_after_bind();
 }
