@@ -12,17 +12,28 @@
 struct CertWatcher {
     efsw::FileWatcher watcher;
     FileModifiedListener listener;
+    std::string directory;
 
     explicit CertWatcher(const std::weak_ptr<Server> &server) : listener(server) {
         const std::string cert = std::getenv("SSL_KEY_PATH");
         const auto file_path = std::filesystem::path(cert);
-        const std::string path = file_path.parent_path().string();
 
-        watcher.addWatch(path, &listener, false);
+        const std::string dir = file_path.parent_path().string();
+        directory = dir;
+
+        watcher.addWatch(directory, &listener, false);
+    }
+
+    ~CertWatcher() {
+        stop();
     }
 
     void watch() {
         watcher.watch();
+    }
+
+    void stop() {
+        watcher.removeWatch(directory);
     }
 };
 
@@ -43,12 +54,11 @@ int main() {
     const std::shared_ptr<Server> server = ServerFactory::create(ip, port, gitlab_instance);
     weak_server = server;
 
+    const auto cert_watcher = std::make_unique<CertWatcher>(server);
     std::signal(SIGTERM, handle_exit_signal);
 
-    if (const auto ssl_server = dynamic_cast<HttpsServer*>(server.get()); ssl_server) {
-        const auto cert_watcher = std::make_unique<CertWatcher>(weak_server);
+    if (const auto ssl_server = dynamic_cast<HttpsServer*>(server.get()); ssl_server)
         cert_watcher->watch();
-    }
 
     server->start();
 }

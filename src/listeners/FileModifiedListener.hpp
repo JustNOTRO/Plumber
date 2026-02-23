@@ -18,7 +18,13 @@ public:
                           const std::string &filename,
                           efsw::Action action,
                           std::string) override;
-private:
-    std::weak_ptr<Server> server;
-};
 
+private:
+    static constexpr int DEBOUNCE_INTERVAL_MILLIS = 500;
+
+    std::weak_ptr<Server> server;
+
+    std::unordered_map<std::string, std::chrono::steady_clock::time_point> last_event_times;
+
+    std::mutex mutex;
+};
