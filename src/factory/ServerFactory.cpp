@@ -9,19 +9,18 @@
 
 #include <fstream>
 
-bool use_ssl(const char* cert, const char* cert_key) {
-    if (cert == nullptr || cert_key == nullptr)
-        return false;
+#include "../utils/ServerUtils.hpp"
 
-    const std::ifstream cert_file(cert);
+bool use_ssl(const std::string &ssl_cert_path, const std::string ssl_cert_key) {
+    const std::ifstream cert_file(ssl_cert_path);
     if (!cert_file.is_open()) {
-        spdlog::error("Failed to open cert file {}", cert);
+        spdlog::error("Failed to open cert file {}", ssl_cert_path);
         return false;
     }
 
-    const std::ifstream cert_key_file(cert_key);
+    const std::ifstream cert_key_file(ssl_cert_key);
     if (!cert_key_file.is_open()) {
-        spdlog::error("Failed to open cert key file {}", cert_key);
+        spdlog::error("Failed to open cert key file {}", ssl_cert_key);
         return false;
     }
 
@@ -29,11 +28,11 @@ bool use_ssl(const char* cert, const char* cert_key) {
 }
 
 std::shared_ptr<Server> ServerFactory::create(const std::string &ip, std::uint16_t port, const std::string &gitlab_instance) {
-    const char* ssl_cert = std::getenv("SSL_CERT_PATH");
-    const char* ssl_key_path = std::getenv("SSL_KEY_PATH");
+    const std::string ssl_cert_path = ServerUtils::require_env("SSL_CERT_PATH");
+    const std::string ssl_key_path = ServerUtils::require_env("SSL_KEY_PATH");
 
-    if (use_ssl(ssl_cert, ssl_key_path))
-        return std::make_shared<HttpsServer>(ip, port, gitlab_instance, ssl_cert, ssl_key_path);
+    if (use_ssl(ssl_cert_path, ssl_key_path))
+        return std::make_shared<HttpsServer>(ip, port, gitlab_instance, ssl_cert_path, ssl_key_path);
 
     return std::make_shared<HttpServer>(ip, port, gitlab_instance);
 }

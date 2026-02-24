@@ -38,8 +38,6 @@ public:
 
     virtual void stop() = 0;
 
-    void restart();
-
     virtual bool bind_to_port(const std::string &ip, std::uint16_t port) = 0;
 
     virtual bool listen_after_bind() = 0;
@@ -67,7 +65,7 @@ public:
 protected:
     std::string ip;
 
-    std::uint16_t port;
+    unsigned short port;
 
     httplib::Client gitlab_client;
 

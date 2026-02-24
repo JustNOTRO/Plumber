@@ -43,7 +43,6 @@ void Server::setup_gitlab_client() {
     });
 }
 
-
 void Server::start() {
     if (!bind_to_port(ip, port)) {
         spdlog::error("failed to bind address {} to port {}.", ip, port);
@@ -53,9 +52,9 @@ void Server::start() {
     setup_gitlab_client();
 
     Post("/webhook", [this](const httplib::Request &req, httplib::Response &response) {
-        const char *x_gitlab_token = std::getenv("X_GITLAB_TOKEN");
+        const std::optional<std::string> x_gitlab_token = ServerUtils::get_env("X_GITLAB_TOKEN");
 
-        if (x_gitlab_token && req.get_header_value("X-Gitlab-Token") != x_gitlab_token) {
+        if (x_gitlab_token && req.get_header_value("X-Gitlab-Token") != x_gitlab_token.value()) {
             response.status = 401;
             response.body = "Unauthorized";
             return;
@@ -80,27 +79,11 @@ void Server::start() {
         response.status = 200;
     });
 
-    Get("/metrics", [](const httplib::Request &, httplib::Response &response) {
-        response.status = 200;
-        response.body = "OK";
-    });
-
     spdlog::info("Server is now running on: {}:{}", ip, port);
     listen_after_bind();
 }
 
-void Server::restart() {
-    // restart logic here..
-    spdlog::info("Restarting server..");
-
-    // if the server is being runned in pterodactyl,
-    // restart the server using pterodactyl restart HTTP endpoint
-    // otherwise, do nothing for now? until i figure it out
-    stop();
-}
-
-void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name,
-                                const std::string &bot_username) {
+void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username) {
     if (const std::string build_name = req_body["build_name"].get<std::string>(); build_name != job_name)
         return;
 
@@ -142,8 +125,7 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
     }
 }
 
-void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username,
-                                    const std::string &job_name) {
+void Server::handle_comment_webhook(const nlohmann::json &req_body, const std::string &bot_username, const std::string &job_name) {
     const nlohmann::json object_attributes = req_body["object_attributes"].get<nlohmann::json>();
     const std::string noteable_type = object_attributes["noteable_type"].get<std::string>();
 

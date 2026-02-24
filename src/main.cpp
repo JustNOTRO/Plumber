@@ -44,17 +44,19 @@ void handle_exit_signal(int __attribute__((unused)) signal) {
 
     if (const auto server = weak_server.lock())
         server->stop();
+    else
+        spdlog::error("Failed to stop the server.");
 }
 
 int main() {
     const std::string ip = ServerUtils::require_env("SERVER_IP");
-    const std::uint16_t port = ServerUtils::require_port("SERVER_PORT");
+    const unsigned short port = ServerUtils::require_port("SERVER_PORT");
     const std::string gitlab_instance = ServerUtils::require_env("GITLAB_INSTANCE");
 
     const std::shared_ptr<Server> server = ServerFactory::create(ip, port, gitlab_instance);
+    const auto cert_watcher = std::make_unique<CertWatcher>(server);
     weak_server = server;
 
-    const auto cert_watcher = std::make_unique<CertWatcher>(server);
     std::signal(SIGTERM, handle_exit_signal);
 
     if (const auto ssl_server = dynamic_cast<HttpsServer*>(server.get()); ssl_server)
