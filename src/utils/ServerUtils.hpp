@@ -10,6 +10,8 @@
 
 class ServerUtils {
     public:
+        ServerUtils() = delete;
+
         static std::string require_env(const char *name);
 
         static std::uint16_t require_port(const char *name);

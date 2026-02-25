@@ -11,13 +11,13 @@
 
 class HttpServer final : public Server {
 public:
-    HttpServer(const std::string &ip, const std::uint16_t port, const std::string &gitlab_instance) : Server(ip, port, gitlab_instance) {}
+    HttpServer(const std::string &ip, const unsigned short port, const std::string &gitlab_instance) : Server(ip, port, gitlab_instance) {}
 
     void stop() override {
         server.stop();
     }
 
-    bool bind_to_port(const std::string &ip, const std::uint16_t port) override {
+    bool bind_to_port(const std::string &ip, const unsigned short port) override {
         return server.bind_to_port(ip, port);
     }
 

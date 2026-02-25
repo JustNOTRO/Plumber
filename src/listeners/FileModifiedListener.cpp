@@ -11,7 +11,6 @@
 FileModifiedListener::FileModifiedListener(const std::weak_ptr<Server> &server) : server(server) {}
 
 bool update_needed(const std::string &certificate, const std::string &filename) {
-    spdlog::info("Cert: {}", certificate);
     return filename == certificate;
 }
 

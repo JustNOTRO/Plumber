@@ -8,12 +8,12 @@
 
 class HttpsServer final : public Server {
 public:
-    HttpsServer(const std::string &ip,
-        const std::uint16_t port,
+    HttpsServer(
+        const std::string &ip,
+        const unsigned short port,
         const std::string &gitlab_instance,
         const std::string &certificate,
-        const std::string &cert_key
-        ) : Server(ip, port, gitlab_instance), server(certificate.c_str(), cert_key.c_str()) {}
+        const std::string &cert_key) : Server(ip, port, gitlab_instance), server(certificate.c_str(), cert_key.c_str()) {}
 
     void stop() override {
         server.stop();
