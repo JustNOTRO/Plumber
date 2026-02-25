@@ -28,5 +28,5 @@ private:
 
     std::mutex mutex;
 
-    std::string read_all(const char* path);
+    static std::string read_all(const char* path);
 };
