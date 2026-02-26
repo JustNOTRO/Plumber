@@ -15,7 +15,7 @@ std::string ServerUtils::require_env(const char *name) {
     return v;
 }
 
-std::uint16_t ServerUtils::require_port(const char *name) {
+unsigned short ServerUtils::require_port(const char *name) {
     std::string v = require_env(name);
 
     try {
