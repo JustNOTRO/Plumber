@@ -58,6 +58,7 @@ int main() {
     weak_server = server;
 
     std::signal(SIGTERM, handle_exit_signal);
+    std::signal(SIGINT, handle_exit_signal);
 
     if (const auto ssl_server = dynamic_cast<HttpsServer*>(server.get()); ssl_server)
         cert_watcher->watch();
