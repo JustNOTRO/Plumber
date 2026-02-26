@@ -13,6 +13,7 @@ include(third_party/cpp-httplib.cmake)
 include(third_party/nlohmann-json.cmake)
 include(third_party/spdlog.cmake)
 include(third_party/efsw.cmake)
+include(third_party/prometheus-cpp.cmake)
 
 add_executable(Plumber
         src/main.cpp
@@ -31,4 +32,5 @@ target_link_libraries(Plumber PRIVATE
         nlohmann_json::nlohmann_json
         spdlog::spdlog
         efsw
+        prometheus-cpp::core
 )

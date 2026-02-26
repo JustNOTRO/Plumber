@@ -5,7 +5,11 @@
 #include "Server.hpp"
 
 #include <utility>
+
 #include "../utils/ServerUtils.hpp"
+#include "prometheus/counter.h"
+#include "prometheus/registry.h"
+#include "prometheus/text_serializer.h"
 #include "spdlog/spdlog.h"
 
 Server::Server(std::string ip, const std::uint16_t port, const std::string &gitlab_instance)
@@ -79,10 +83,29 @@ void Server::start() {
         response.status = 200;
     });
 
+    auto registry = std::make_shared<prometheus::Registry>();
+
+    auto &counter_family = prometheus::BuildCounter()
+        .Name("http_requests_total")
+        .Help("Total HTTP requests")
+        .Register(*registry);
+
+    auto &counter = counter_family.Add({{"method", "GET"}});
+
+    Get("/metrics", [&counter, &registry](const httplib::Request &, httplib::Response &response) {
+        counter.Increment();
+
+        const prometheus::TextSerializer text_serializer;
+        std::ostringstream os;
+        text_serializer.Serialize(os, registry->Collect());
+
+        response.set_content(os.str(), "text/plain; version=0.0.4");
+        response.status = 200;
+    });
+
     spdlog::info("Server is now running on: {}:{}", ip, port);
     listen_after_bind();
 }
-
 void Server::handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name, const std::string &bot_username) {
     if (const std::string build_name = req_body["build_name"].get<std::string>(); build_name != job_name)
         return;

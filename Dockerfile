@@ -5,6 +5,9 @@ RUN apk add --no-cache \
     git \
     openssl-dev \
     cmake \
+    zlib-dev \
+    curl \
+    curl-dev \
     build-base
 
 COPY src /usr/src/Plumber/src
@@ -22,10 +25,12 @@ FROM alpine:latest as runtime
 RUN adduser --disabled-password --home /home/container container
 RUN apk add --no-cache bash \
     libstdc++ \
-    libgcc
+    libgcc \
+    brotli-libs \
+    zstd-libs
 
 USER container
-ENV  USER=container HOME=/home/container
+ENV USER=container HOME=/home/container
 
 WORKDIR /home/container
 
