@@ -13,7 +13,7 @@ class ServerUtils {
 
         static std::string require_env(const char *name);
 
-        static std::uint16_t require_port(const char *name);
+        static unsigned short require_port(const char *name);
 
         static std::string require_url_scheme(const char *name);
 
