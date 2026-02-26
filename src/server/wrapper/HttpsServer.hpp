@@ -19,7 +19,7 @@ public:
         server.stop();
     }
 
-    bool bind_to_port(const std::string &ip, const std::uint16_t port) override {
+    bool bind_to_port(const std::string &ip, const unsigned short port) override {
         return server.bind_to_port(ip, port);
     }
 
