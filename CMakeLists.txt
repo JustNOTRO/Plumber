@@ -1,41 +1,34 @@
 cmake_minimum_required(VERSION 4.0)
 project(Plumber)
 
+set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
-
 find_package(OpenSSL REQUIRED)
 
-add_executable(Plumber src/main.cpp
+# third party libraries
+include(third_party/cpp-httplib.cmake)
+include(third_party/nlohmann-json.cmake)
+include(third_party/spdlog.cmake)
+include(third_party/efsw.cmake)
+
+add_executable(Plumber
+        src/main.cpp
         src/server/Server.cpp
-        src/server/Server.hpp
+        src/server/wrapper/HttpsServer.hpp
+        src/server/wrapper/HttpServer.hpp
+        src/server/Job.cpp
         src/managers/JobManager.cpp
-        src/managers/JobManager.hpp
-        src/managers/Job.cpp
-        src/managers/Job.hpp
+        src/factory/ServerFactory.cpp
+        src/listeners/FileModifiedListener.cpp
+        src/utils/ServerUtils.cpp
 )
 
-include(FetchContent)
-
-FetchContent_Declare(httplib SYSTEM
-        GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
-        GIT_TAG master)
-
-FetchContent_Declare(
-        nlohmann_json
-        GIT_REPOSITORY https://github.com/nlohmann/json.git
-        GIT_TAG develop)
-
-FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.x)
-
-FetchContent_MakeAvailable(httplib)
-FetchContent_MakeAvailable(nlohmann_json)
-FetchContent_MakeAvailable(spdlog)
-
-target_link_libraries(Plumber PRIVATE httplib)
-target_link_libraries(Plumber PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(Plumber PRIVATE spdlog::spdlog)
+target_link_libraries(Plumber PRIVATE
+        httplib
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog
+        efsw
+)
