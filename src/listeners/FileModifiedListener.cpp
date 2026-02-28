@@ -7,6 +7,8 @@
 #include "../server/wrapper/HttpsServer.hpp"
 #include "../utils/ServerUtils.hpp"
 
+#include <spdlog/spdlog.h>
+
 FileModifiedListener::FileModifiedListener(const std::weak_ptr<Server> &server) : server(server) {}
 
 bool update_needed(const std::string &certificate, const std::string &filename) {
