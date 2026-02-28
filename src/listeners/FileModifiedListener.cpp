@@ -6,7 +6,6 @@
 
 #include "../server/wrapper/HttpsServer.hpp"
 #include "../utils/ServerUtils.hpp"
-#include "spdlog/spdlog.h"
 
 FileModifiedListener::FileModifiedListener(const std::weak_ptr<Server> &server) : server(server) {}
 
@@ -27,10 +26,13 @@ void FileModifiedListener::handleFileAction(efsw::WatchID, const std::string &di
     const std::string ssl_key_path = ServerUtils::require_env("SSL_KEY_PATH");
 
     const auto file_path = std::filesystem::path(ssl_cert_path);
-    const std::string certificate = file_path.filename().string();
+    const std::string fullchain = file_path.filename().string();
+
+    const auto key_path = std::filesystem::path(ssl_key_path);
+    const std::string privkey = key_path.filename().string();
 
     const auto shared_server = server.lock();
-    if (!shared_server || !update_needed(certificate, filename))
+    if (!shared_server || filename != fullchain && filename != privkey)
         return;
 
     {
@@ -42,15 +44,18 @@ void FileModifiedListener::handleFileAction(efsw::WatchID, const std::string &di
             return;
 
         last_event_times[filename] = now;
-    }
 
+        if (action != efsw::Action::Modified)
+            return;
 
-    if (action == efsw::Action::Modified) {
-        auto cert = read_all(ssl_cert_path.c_str());
-        auto key = read_all(ssl_key_path.c_str());
+        std::string cert = read_all(ssl_cert_path.c_str());
+        std::string key = read_all(ssl_key_path.c_str());
+
         const auto ssl_server = dynamic_cast<HttpsServer*>(shared_server.get());
+        if (cert.empty() || key.empty())
+            return;
 
-        if (!cert.empty() && !key.empty())
-            ssl_server->update_certs_pem(cert.c_str(), key.c_str());
+        if (!ssl_server->update_certs_pem(cert.c_str(), key.c_str()))
+            spdlog::error("Failed to update PEM certificates.");
     }
 }
