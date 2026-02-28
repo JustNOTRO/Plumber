@@ -239,8 +239,14 @@ void Server::retry_job(const Job &job) {
 }
 
 void Server::retry_job(JobInfo &job_info) {
-    const nlohmann::json pipeline_jobs = get_pipeline_jobs(job_info.project_id, job_info.pipeline_id);
-    std::expected<Job, std::string> job_expected = create_job(pipeline_jobs, job_info);
+    const std::expected<nlohmann::json, std::string> pipeline_jobs = get_pipeline_jobs(job_info.project_id, job_info.pipeline_id);
+
+    if (!pipeline_jobs) {
+        spdlog::error("failed: {}", pipeline_jobs.error());
+        return;
+    }
+
+    std::expected<Job, std::string> job_expected = create_job(pipeline_jobs.value(), job_info);
 
     if (!job_expected) {
         spdlog::error("failed: {}", job_expected.error());
@@ -254,7 +260,7 @@ void Server::retry_job(JobInfo &job_info) {
         return;
     }
 
-    const std::string &emoji = ServerUtils::get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket");
+    const std::string emoji = ServerUtils::get_env("RETRY_REQUEST_APPROVED_REACTION").value_or("rocket");
     react_with_emoji(job, emoji);
     job.increase_retry_amount();
 
@@ -299,14 +305,12 @@ void Server::unapprove_merge_request(Job &job, const std::string &bot_username, 
     job_manager.remove_job(pipeline_id);
 }
 
-nlohmann::json Server::get_pipeline_jobs(int project_id, int pipeline_id) {
+std::expected<nlohmann::json, std::string> Server::get_pipeline_jobs(int project_id, int pipeline_id) {
     const std::string path = std::format("/api/v4/projects/{}/pipelines/{}/jobs", project_id, pipeline_id);
-    const httplib::Result jobs = gitlab_client.Get(path);
+    const httplib::Result res = gitlab_client.Get(path);
 
-    if (!jobs) {
-        spdlog::error("failed to get pipeline jobs with status {}", jobs->status);
-        return nlohmann::json::array();
-    }
+    if (res->status != 200)
+        return std::unexpected(std::format("could not get pipeline jobs with status {}", res->status));
 
-    return nlohmann::json::parse(jobs->body);
+    return nlohmann::json::parse(res->body);
 }

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../Server.hpp"
+#include "../../utils/ServerUtils.hpp"
 
 class HttpsServer final : public Server {
 public:
@@ -69,8 +70,43 @@ public:
 
     bool update_certs_pem(const char *cert_pem, const char *key_pem,
                         const char *client_ca_pem = nullptr,
-                        const char *password = nullptr) {
-        return server.update_certs_pem(cert_pem, key_pem, client_ca_pem, password);
+                        const char *password = nullptr) const {
+        httplib::tls::ctx_t tls_ctx = server.tls_context();
+
+        if (!tls_ctx || !cert_pem || !key_pem) { return false; }
+        auto ssl_ctx = static_cast<SSL_CTX *>(tls_ctx);
+
+        // Load certificate from PEM
+        auto cert_bio = BIO_new_mem_buf(cert_pem, -1);
+        if (!cert_bio) { return false; }
+        auto cert = PEM_read_bio_X509(cert_bio, nullptr, nullptr, nullptr);
+        BIO_free(cert_bio);
+        if (!cert) { return false; }
+
+        // Load private key from PEM
+        auto key_bio = BIO_new_mem_buf(key_pem, -1);
+        if (!key_bio) {
+            X509_free(cert);
+            return false;
+        }
+        auto key = PEM_read_bio_PrivateKey(key_bio, nullptr, nullptr,
+                                           password ? const_cast<char *>(password)
+                                                    : nullptr);
+        BIO_free(key_bio);
+        if (!key) {
+            X509_free(cert);
+            return false;
+        }
+
+        // Update certificate and key
+        const std::string cert_path = ServerUtils::require_env("SSL_CERT_PATH");
+
+        auto ret = SSL_CTX_use_certificate_chain_file(ssl_ctx, cert_path.c_str()) == 1 &&
+                   SSL_CTX_use_PrivateKey(ssl_ctx, key) == 1;
+
+        X509_free(cert);
+        EVP_PKEY_free(key);
+        return ret;
     }
 
 private:
