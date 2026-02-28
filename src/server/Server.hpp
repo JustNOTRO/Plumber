@@ -10,11 +10,7 @@
 
 #include "../managers/JobManager.hpp"
 
-constexpr std::string BOT_MENTION_PREFIX = "@";
-constexpr int HTTP_CREATED = 201;
-constexpr int HTTP_DELETED = 204;
-constexpr int HTTP_UNAUTHORIZED = 401;
-constexpr int HTTP_NOT_FOUND = 404;
+
 
 struct JobInfo {
     std::string name;
@@ -85,7 +81,7 @@ protected:
     void handle_job_webhook(const nlohmann::json &req_body, const std::string &job_name,
                             const std::string &bot_username);
 
-    [[nodiscard]] nlohmann::json get_pipeline_jobs(int project_id, int pipeline_id);
+    [[nodiscard]] std::expected<nlohmann::json, std::string> get_pipeline_jobs(int project_id, int pipeline_id);
 
     void react_with_emoji(const Job &job, const std::string &emoji);
 
@@ -94,5 +90,11 @@ protected:
     void retry_job(JobInfo &job_info);
 
 private:
+    static constexpr std::string BOT_MENTION_PREFIX = "@";
+    static constexpr int HTTP_CREATED = 201;
+    static constexpr int HTTP_DELETED = 204;
+    static constexpr int HTTP_UNAUTHORIZED = 401;
+    static constexpr int HTTP_NOT_FOUND = 404;
+
     void setup_gitlab_client();
 };
