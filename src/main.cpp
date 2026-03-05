@@ -15,7 +15,10 @@ struct CertWatcher {
     std::string directory;
 
     explicit CertWatcher(const std::weak_ptr<Server> &server) : listener(server) {
-        const std::string cert = std::getenv("SSL_KEY_PATH");
+        const char *cert = std::getenv("SSL_KEY_PATH");
+        if (cert == nullptr)
+            return;
+
         const auto file_path = std::filesystem::path(cert);
 
         const std::string dir = file_path.parent_path().string();
