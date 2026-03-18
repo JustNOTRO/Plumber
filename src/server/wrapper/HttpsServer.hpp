@@ -68,6 +68,10 @@ public:
         return server.Options(pattern, handler);
     }
 
+    httplib::Server &set_payload_max_length(size_t length) override {
+        return server.set_payload_max_length(length);
+    }
+
     bool update_certs_pem(const char *cert_pem, const char *key_pem,
                         const char *client_ca_pem = nullptr,
                         const char *password = nullptr) const {

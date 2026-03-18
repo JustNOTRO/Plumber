@@ -49,6 +49,7 @@ void Server::start() {
         std::exit(1);
     }
 
+    set_payload_max_length(MAX_PAYLOAD_LENGTH);
     setup_gitlab_client();
 
     Post("/webhook", [this](const httplib::Request &req, httplib::Response &response) {

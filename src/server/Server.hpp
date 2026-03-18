@@ -58,6 +58,8 @@ public:
 
     virtual httplib::Server &Options(const std::string &pattern, Handler handler) = 0;
 
+    virtual httplib::Server &set_payload_max_length(size_t length) = 0;
+
 protected:
     std::string ip;
 
@@ -95,6 +97,9 @@ private:
     static constexpr int HTTP_DELETED = 204;
     static constexpr int HTTP_UNAUTHORIZED = 401;
     static constexpr int HTTP_NOT_FOUND = 404;
+
+    // 30MB - Gitlab requests size are roughly around 25MB
+    static constexpr size_t MAX_PAYLOAD_LENGTH = 30 * 1024 * 1024;
 
     void setup_gitlab_client();
 };
