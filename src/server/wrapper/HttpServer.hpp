@@ -65,6 +65,10 @@ public:
         return server.Options(pattern, handler);
     }
 
+    httplib::Server &set_payload_max_length(size_t length) override {
+        return server.set_payload_max_length(length);
+    }
+
 private:
     httplib::Server server;
 };
