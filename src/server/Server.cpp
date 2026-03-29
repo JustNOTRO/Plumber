@@ -93,10 +93,8 @@ void Server::handle_job_webhook(const nlohmann::json &req_body, const std::strin
     const int pipeline_id = req_body["pipeline_id"].get<int>();
 
     const std::optional<std::reference_wrapper<Job> > job_opt = job_manager.get_job(pipeline_id);
-    if (!job_opt) {
-        spdlog::error("failed to retrieve job, {}", job_name);
+    if (!job_opt)
         return;
-    }
 
     Job &job = job_opt.value().get();
     job.set_id(job_id);
