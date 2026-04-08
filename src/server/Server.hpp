@@ -10,8 +10,6 @@
 
 #include "../managers/JobManager.hpp"
 
-
-
 struct JobInfo {
     std::string name;
     int id{};
@@ -30,7 +28,7 @@ public:
 
     virtual ~Server() = default;
 
-    void start();
+    virtual void start() = 0;
 
     virtual void stop() = 0;
 

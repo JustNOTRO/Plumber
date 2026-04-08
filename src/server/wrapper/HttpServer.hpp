@@ -6,12 +6,15 @@
 
 #include "httplib.h"
 #include "spdlog/spdlog.h"
-
 #include "../Server.hpp"
 
-class HttpServer final : public Server {
+class HttpServer : public Server {
 public:
     HttpServer(const std::string &ip, const unsigned short port, const std::string &gitlab_instance) : Server(ip, port, gitlab_instance) {}
+
+    void start() override {
+        Server::start();
+    }
 
     void stop() override {
         server.stop();
