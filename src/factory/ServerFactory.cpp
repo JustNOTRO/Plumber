@@ -34,8 +34,13 @@ std::shared_ptr<Server> ServerFactory::create(const std::string &ip, unsigned sh
     const char *ssl_cert_path = std::getenv("SSL_CERT_PATH");
     const char *ssl_key_path = std::getenv("SSL_KEY_PATH");
 
-    if (use_ssl(ssl_cert_path, ssl_key_path))
+    spdlog::info("SSL_CERT_PATH: {}", ssl_cert_path);
+    spdlog::info("SSL_KEY_PATH: {}", ssl_key_path);
+
+    if (use_ssl(ssl_cert_path, ssl_key_path)) {
+        spdlog::info("Using SSL");
         return std::make_shared<HttpsServer>(ip, port, gitlab_instance, ssl_cert_path, ssl_key_path);
+    }
 
     return std::make_shared<HttpServer>(ip, port, gitlab_instance);
 }

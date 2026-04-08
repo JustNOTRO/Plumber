@@ -52,7 +52,11 @@ void Server::start() {
     set_payload_max_length(MAX_PAYLOAD_LENGTH);
     setup_gitlab_client();
 
-    Post("/webhook", [this](const httplib::Request &req, httplib::Response &response) {
+    const std::string bot_username = ServerUtils::require_env("BOT_USERNAME");
+    const std::string job_name = ServerUtils::require_env("JOB_NAME");
+    ServerUtils::require_retry_amount("RETRY_AMOUNT");
+
+    Post("/webhook", [this, bot_username, job_name](const httplib::Request &req, httplib::Response &response) {
         const std::optional<std::string> x_gitlab_token = ServerUtils::get_env("X_GITLAB_TOKEN");
 
         if (x_gitlab_token && req.get_header_value("X-Gitlab-Token") != x_gitlab_token.value()) {
@@ -66,8 +70,6 @@ void Server::start() {
             return;
         }
 
-        const std::string bot_username = ServerUtils::require_env("BOT_USERNAME");
-        const std::string job_name = ServerUtils::require_env("JOB_NAME");
         const nlohmann::json req_body = nlohmann::json::parse(req.body);
 
         if (const std::string object_kind = req_body["object_kind"].get<std::string>(); object_kind == "build")

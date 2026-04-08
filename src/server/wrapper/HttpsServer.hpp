@@ -4,17 +4,59 @@
 
 #pragma once
 
+#include "../../listeners/FileModifiedListener.hpp"
 #include "../Server.hpp"
 #include "../../utils/ServerUtils.hpp"
+#include "efsw/efsw.hpp"
 
-class HttpsServer final : public Server {
+struct CertWatcher {
+    efsw::FileWatcher watcher;
+    FileModifiedListener listener;
+    std::string directory;
+
+    explicit CertWatcher(const std::weak_ptr<Server> &server) : listener(server) {
+        const char *cert = std::getenv("SSL_KEY_PATH");
+        if (cert == nullptr)
+            return;
+
+        const auto file_path = std::filesystem::path(cert);
+
+        const std::string dir = file_path.parent_path().string();
+        directory = dir;
+
+        watcher.addWatch(directory, &listener, false);
+    }
+
+    ~CertWatcher() {
+        stop();
+    }
+
+    void watch() {
+        watcher.watch();
+    }
+
+    void stop() {
+        watcher.removeWatch(directory);
+    }
+};
+
+class HttpsServer : public Server {
 public:
     HttpsServer(
         const std::string &ip,
         const unsigned short port,
         const std::string &gitlab_instance,
         const std::string &certificate,
-        const std::string &cert_key) : Server(ip, port, gitlab_instance), server(certificate.c_str(), cert_key.c_str()) {}
+        const std::string &cert_key) : Server(ip, port, gitlab_instance), server(certificate.c_str(), cert_key.c_str()
+    ) {}
+
+    void start() override {
+        std::weak_ptr<Server> weak_server = weak_from_this();
+        const auto cert_watcher = std::make_unique<CertWatcher>(weak_server);
+        cert_watcher->watch();
+
+        Server::start();
+    }
 
     void stop() override {
         server.stop();

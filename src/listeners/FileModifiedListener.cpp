@@ -59,5 +59,7 @@ void FileModifiedListener::handleFileAction(efsw::WatchID, const std::string &di
 
         if (!ssl_server->update_certs_pem(cert.c_str(), key.c_str()))
             spdlog::error("Failed to update PEM certificates.");
+        else
+            spdlog::info("PEM certificates updated successfully.");
     }
 }
