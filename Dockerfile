@@ -21,8 +21,7 @@ ENV  USER=container HOME=/home/container
 
 WORKDIR /home/container
 
-COPY --from=build /usr/cmd/plumber/plumber /home/container/plumber
+COPY --from=build /usr/cmd/plumber/plumber /app/plumber
 COPY ./entrypoint.sh /entrypoint.sh
 
-ENV CONFIG_PATH=.
 CMD ["/bin/sh", "/entrypoint.sh"]
